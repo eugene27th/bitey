@@ -1,0 +1,144 @@
+let dttl = 7200;
+let storage = {};
+
+
+const spath = function(key) {
+    let folder = `default`;
+    let path = key.split(`:`);
+
+    if (path.length < 2 || path[0].length < 1) {
+        return {
+            folder: folder,
+            key: path
+        };
+    };
+
+    folder = path[0];
+    key = path.splice(1).join();
+
+    if (key.length < 1) {
+        return {
+            folder: folder
+        };
+    };
+
+    return {
+        folder: folder,
+        key: key
+    };
+};
+
+const set = function(keys, value, ttl = dttl) {
+    if (!Array.isArray(keys)) {
+        keys = [keys];
+    };
+
+    let data = {
+        value: value,
+        expire: (Math.round((new Date().getTime()) / 1000)) + ttl
+    };
+
+    if (typeof value === `object` && !Array.isArray(value) && value !== null) {
+        data.value = structuredClone(value);
+    };
+
+    for (let i = 0; i < keys.length; i++) {
+        const { key, folder } = spath(keys[i]);
+
+        if (storage[folder]) {
+            storage[folder][key] = data;
+        } else {
+            storage[folder] = {
+                [key]: data
+            };
+        };
+    };
+
+    return value;
+};
+
+const get = function(key) {
+    let path = spath(key);
+
+    if (!storage[path.folder]) {
+        return null;
+    };
+
+    if (!path.key) {
+        return storage[path.folder];
+    };
+
+    let data = storage[path.folder][path.key];
+
+    if (data === undefined) {
+        return null;
+    };
+
+    if ((Math.round((new Date().getTime()) / 1000)) > data.expire) {
+        delete storage[path.folder][path.key];
+        return null;
+    };
+
+    return structuredClone(data.value);
+};
+
+const del = function(keys, del_dup = false) {
+    if (!Array.isArray(keys)) {
+        keys = [keys];
+    };
+
+    for (const key of keys) {
+        let path = spath(key);
+
+        if (!storage[path.folder]) {
+            continue;
+        };
+
+        if (!path.key) {
+            delete storage[path.folder];
+            continue;
+        };
+
+        if (del_dup) {
+            let value = storage[path.folder][path.key];
+
+            for (let [folder, keys] of Object.entries(storage)) {
+                for (let [key, data] of Object.entries(keys)) {
+                    if (value === data) {
+                        delete storage[folder][key];
+                    };
+                };
+            };
+        } else {
+            delete storage[path.folder][path.key];
+        };
+
+        if (Object.keys(storage[path.folder]).length < 1) {
+            delete storage[path.folder];
+        };
+    };
+    
+    return true;
+};
+
+
+setInterval(function() {
+    for (const [folder, keys] of Object.entries(storage)) {
+        for (const [key, data] of Object.entries(keys)) {
+            if ((Math.round((new Date().getTime()) / 1000)) > data.expire) {
+                delete storage[folder][key];
+
+                if (Object.keys(keys).length < 1) {
+                    delete storage[folder];
+                };
+            };
+        }
+    };
+}, 1800 * 1000);
+
+
+module.exports = {
+    get,
+    set,
+    del
+};

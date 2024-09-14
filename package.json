@@ -1,0 +1,16 @@
+{
+    "name": "uwse",
+    "version": "0.1.0",
+    "main": "index.js",
+    "types": "./index.d.ts",
+    "exports": {
+        "require": "./index.js"
+    },
+    "dependencies": {
+        "bcrypt": "^5.1.1",
+        "cookie": "^0.6.0",
+        "mysql2": "^3.9.4",
+        "redis": "^4.6.13",
+        "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.43.0"
+    }
+}
