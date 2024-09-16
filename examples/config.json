@@ -1,0 +1,106 @@
+{
+    "port": 30000,
+
+    "cors": {
+        "origin": [
+            "http://127.0.0.1:3000",
+            "https://domain.com"
+        ],
+        "headers": [
+            "custom-additional-header"
+        ],
+        "credentials": true
+    },
+
+    "session": {
+        "name": "uwse-example",
+        "secret": "something-secret",
+        "termination_new_ip": true,
+        "options": {
+            "path": "/",
+            "httpOnly": false,
+            "maxAge": 604800
+        }
+    },
+
+    "database": {
+        "mysql": {
+            "host": "127.0.0.1",
+            "user": "username",
+            "database": "databasename",
+            "password": "password",
+            "waitForConnections": true,
+            "connectionLimit": 1,
+            "queueLimit": 0,
+            "multipleStatements": true,
+            "timezone": "+02:00"
+        },
+        "redis": {
+            "host": "127.0.0.1",
+            "port": 6379,
+            "password": "password"
+        }
+    },
+
+    "cloudflare": {
+        "turnstile": {
+            "secret_key": "",
+            "site_key": ""
+        },
+        "blacklist": [
+            "127.0.0.1"
+        ],
+        "whitelist": [
+            "127.0.0.1"
+        ] 
+    },
+
+    "mailgun": {
+        "name.domain": {
+            "url": "https://api.eu.mailgun.net/v3/mg.name.domain",
+            "key": "api_key"
+        }
+    },
+
+    "telegram": {
+        "token": "bot_token"
+    },
+
+    "google": {
+        "id": "google_client_id",
+        "secret": "google_secret_token",
+        "webhook_url": "https://api.name.domain/webhook/google",
+        "redirect_url": "https://name.domain/callback/google"
+    },
+
+    "discord": {
+        "id": "discord_client_id",
+        "secret": "discord_secret_token",
+        "webhook_url": "https://api.name.domain/webhook/discord",
+        "redirect_url": "https://name.domain/callback/discord"
+    },
+
+    "coinbase": {
+        "key": "key",
+        "webhook_secret": "webhook_secret",
+        "redirect_url": "https://domain.name/"
+    },
+
+    "cryptomus": {
+        "key": "key",
+        "merchant": "merchantuuid"
+    },
+
+    "sellix": {
+        "key": "key",
+        "webhook_secret": "secret",
+        "redirect_url": "https://domain.name/"
+    },
+
+    "stripe": {
+        "public_key": "public_key",
+        "secret_key": "webhook_secret",
+        "webhook_secret": "secret",
+        "redirect_url": "https://domain.name/"
+    }
+}
