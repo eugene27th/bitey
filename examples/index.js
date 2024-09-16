@@ -1,0 +1,6 @@
+let app = require(`uwse`).app;
+
+require(`./api/controllers/http/hello`)(app);
+require(`./api/controllers/ws/hello`)(app);
+
+app.start();
