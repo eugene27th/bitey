@@ -10,23 +10,15 @@ const timestamp = function(date) {
 };
 
 const date = function(mode = `d.m.y`) {
-    let date = new Date();
+    const date = new Date();
 
     if (mode == `ymd`) {
         return date.toISOString().slice(0, 10);  
     };
-    
-    let d = date.getUTCDate();
-    let m = date.getUTCMonth() + 1;
+
+    let d = `${date.getUTCDate()}`.padStart(2, `0`);
+    let m = `${date.getUTCMonth() + 1}`.padStart(2, `0`);
     let y = date.getUTCFullYear();
-
-    if (d < 10) {
-        d = `0${d}`;
-    };
-
-    if (m < 10) {
-        m = `0${m}`;
-    };
 
     switch (mode) {
         case `d.m.y`:
@@ -41,25 +33,9 @@ const date = function(mode = `d.m.y`) {
 };
 
 const time = function() {
-    let date = new Date();
-    
-    let h = date.getUTCHours();
-    let m = date.getUTCMinutes();
-    let s = date.getUTCSeconds();
+    const date = new Date();
 
-    if (h < 10) {
-        h = `0${h}`;
-    };
-
-    if (m < 10) {
-        m = `0${m}`;
-    };
-
-    if (s < 10) {
-        s = `0${s}`;
-    };
-
-    return `${h}:${m}:${s}Z`;
+    return `${`${date.getUTCHours()}`.padStart(2, `0`)}:${`${date.getUTCMinutes()}`.padStart(2, `0`)}:${`${date.getUTCSeconds()}`.padStart(2, `0`)}Z`;
 };
 
 const uuidts = function() {

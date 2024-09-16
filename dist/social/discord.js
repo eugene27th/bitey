@@ -6,12 +6,8 @@ if (!config.discord) {
 };
 
 
-const url = function(state, account_id) {
-    if (state !== `login`) {
-        state += `-${account_id}-${createHmac(`sha256`, config.discord.secret).update(`${state}-${account_id}`, `utf8`).digest(`hex`)}`;
-    };
-
-    return `https://discord.com/oauth2/authorize?client_id=${config.discord.id}&response_type=code&redirect_uri=${encodeURIComponent(config.discord.webhook_url)}&scope=identify+openid&state=${state}`;
+const url = function(state) {
+    return `https://discord.com/oauth2/authorize?client_id=${config.discord.id}&response_type=code&redirect_uri=${encodeURIComponent(config.discord.webhook_url)}&scope=identify+openid${state ? `&state=${state}` : ``}`;
 };
 
 const user = async function(code) {

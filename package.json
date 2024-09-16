@@ -2,7 +2,6 @@
     "name": "uwse",
     "version": "0.1.0",
     "main": "index.js",
-    "types": "./index.d.ts",
     "exports": {
         "require": "./index.js"
     },

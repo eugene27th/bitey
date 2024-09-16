@@ -1,4 +1,4 @@
-let err = null;
+let error = null;
 
 let types = {
     boolean: {
@@ -131,55 +131,55 @@ let types = {
 };
 
 
-const error = function() {
-    return err;  
+const f_error = function() {
+    return error;  
 };
 
 const f_value = function(value, schema) {
 	if (typeof value === `undefined`) {
-		err = `missing`;
+		error = `missing`;
 		return false;
 	};
 
 	let required = types[schema.type];
 
 	if (!required) {
-		err = `unknown type`;
+		error = `unknown type`;
 		return false;
 	};
 
 	// value typeof
 	if (typeof value !== required.typeof) {
-		err = `'${required.typeof}' required, got: '${typeof value}'`;
+		error = `'${required.typeof}' required, got: '${typeof value}'`;
 		return false;
 	};
 
 	// required enums
 	if (required.enums && !required.enums.includes(value)) {
-		err = `'${required.enums.join(` / `)}' required`;
+		error = `'${required.enums.join(` / `)}' required`;
 		return false;
 	};
 
 	if (schema.enums && !schema.enums.includes(value)) {
-		err = `'${schema.enums.join(` / `)}' required`;
+		error = `'${schema.enums.join(` / `)}' required`;
 		return false;
 	};
 
 	// if number
 	if ((required.typeof === `number` || required.number) && isNaN(value)) {
-		err = `'number' required`;
+		error = `'number' required`;
 		return false;
 	};
 
 	// if integer
 	if (required.integer && value % 1 !== 0) {
-		err = `'integer number' required`;
+		error = `'integer number' required`;
 		return false;
 	};
 
 	// if float
 	if (required.float && value % 1 === 0) {
-		err = `'float number' required`;
+		error = `'float number' required`;
 		return false;
 	};
 
@@ -189,18 +189,18 @@ const f_value = function(value, schema) {
 	let length = (required.typeof === `string` && !required.number) ? value.length : value;
 
 	if ((min || min === 0) && length < min) {
-		err = `'${min} < value (length)' required`;
+		error = `'${min} < value (length)' required`;
 		return false;
 	};
 	
 	if ((max || max === 0) && length > max) {
-		err = `'value (length) < ${max}' required`;
+		error = `'value (length) < ${max}' required`;
 		return false;
 	};
 	
 	// pattern
 	if (required.pattern && !(new RegExp(required.pattern)).test(value)) {
-		err = `string in pattern '${schema.type}' required`;
+		error = `string in pattern '${schema.type}' required`;
 		return false;
 	};
 
@@ -209,19 +209,19 @@ const f_value = function(value, schema) {
 
 const f_array = function(array, schema) {
     if (typeof array !== `object` && !Array.isArray(array)) {
-        err = `array is invalid`;
+        error = `array is invalid`;
         return false;
     };
 
     let length = array.length;
 
     if (schema.min && length < schema.min) {
-        err = `'${schema.min} < length' required`;
+        error = `'${schema.min} < length' required`;
         return false;
     };
 
     if (schema.max && length > schema.max) {
-        err = `'length < ${schema.max}' required`;
+        error = `'length < ${schema.max}' required`;
         return false;
     };
 
@@ -231,14 +231,14 @@ const f_array = function(array, schema) {
         const item = array[i];
 
         if (!schema.duplicates && approved.has(item)) {
-            err = `array invalid in [${i}] > array without duplicates required`;
+            error = `array invalid in [${i}] > array without duplicates required`;
             return false;
         };
 
         if (schema.items) {
             if (schema.items.type === `array`) {
                 if (!f_array(item, schema.items)) {
-                    err = `array invalid in [${i}] > ${err}`;
+                    error = `array invalid in [${i}] > ${error}`;
                     return false;
                 };
                 
@@ -247,7 +247,7 @@ const f_array = function(array, schema) {
     
             if (schema.items.type === `object`) {
                 if (!f_json(item, schema.items)) {
-                    err = `array invalid in [${i}] > ${err}`;
+                    error = `array invalid in [${i}] > ${error}`;
                     return false;
                 };
     
@@ -255,7 +255,7 @@ const f_array = function(array, schema) {
             };
     
             if (!f_value(item, schema.items)) {
-                err = `array invalid in [${i}] > ${err}`;
+                error = `array invalid in [${i}] > ${error}`;
                 return false;
             };
         };
@@ -268,7 +268,7 @@ const f_array = function(array, schema) {
 
 const f_json = function(json, schema) {
 	if (typeof json !== `object`) {
-		err = `JSON is invalid`;
+		error = `JSON is invalid`;
 		return false;
 	};
 
@@ -277,32 +277,32 @@ const f_json = function(json, schema) {
 	};
 
 	if (Array.isArray(json)) {
-		err = `JSON is invalid`;
+		error = `JSON is invalid`;
 		return false;
 	};
 
 	const json_length = Object.keys(json).length;
 
 	if (schema.min && json_length < schema.min) {
-		err = `'${schema.min} < length' required`;
+		error = `'${schema.min} < length' required`;
 		return false;
 	};
 
 	if (schema.max && json_length > schema.max) {
-		err = `'length < ${schema.max}' required`;
+		error = `'length < ${schema.max}' required`;
 		return false;
 	};
 
 	for (let [key, properties] of Object.entries(schema.properties)) {
 		if (properties.required && json[key] !== 0 && !json[key]) {
-			err = `'${key}' is missing`;
+			error = `'${key}' is missing`;
 			return false;
 		};
 	};
 
 	for (let [key, value] of Object.entries(json)) {
 		if (!schema.properties[key]) {
-			err = `'${key}' is not required`;
+			error = `'${key}' is not required`;
 			return false;
 		};
 
@@ -312,7 +312,7 @@ const f_json = function(json, schema) {
 
         if (schema.properties[key].type === `array`) {
             if (!f_array(value, schema.properties[key])) {
-                err = `'${key}' is invalid > ${err}`;
+                error = `'${key}' is invalid > ${error}`;
 				return false;
 			};
             
@@ -321,7 +321,7 @@ const f_json = function(json, schema) {
 
 		if (schema.properties[key].type === `object`) {
 			if (!f_json(value, schema.properties[key])) {
-                err = `'${key}' is invalid > ${err}`;
+                error = `'${key}' is invalid > ${error}`;
 				return false;
 			};
 
@@ -329,7 +329,7 @@ const f_json = function(json, schema) {
 		};
 
 		if (!f_value(value, schema.properties[key])) {
-			err = `'${key}' is invalid > ${err}`;
+			error = `'${key}' is invalid > ${error}`;
 			return false;
 		};
 	};
@@ -339,7 +339,7 @@ const f_json = function(json, schema) {
 
 
 module.exports = {
-    error,
+    error: f_error,
     value: f_value,
     array: f_array,
     json: f_json

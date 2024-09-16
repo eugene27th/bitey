@@ -6,7 +6,7 @@ if (!config.telegram) {
 };
 
 
-const utils = require(`./utils`);
+const utils = require(`../core/utils`);
 
 
 const user = function(payload) {

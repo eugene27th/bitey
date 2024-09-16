@@ -2,11 +2,11 @@ const config = require(`${process.cwd()}/config.json`);
 
 const uws = require(`uWebSockets.js`);
 
-const cache = require(`./dist/cache`);
-const mysql = require(`./dist/mysql`);
-const logger = require(`./dist/logger`);
-const session = require(`./dist/session`);
-const validator = require(`./dist/validator`);
+const cache = require(`./dist/core/cache`);
+const mysql = require(`./dist/core/mysql`);
+const logger = require(`./dist/core/logger`);
+const session = require(`./dist/core/session`);
+const validator = require(`./dist/core/validator`);
 
 
 const collector = function (res, cb, err) {
@@ -121,7 +121,7 @@ const parser = function(res, req, next) {
             req.raw = buffer;
             
             if (req.options.schema.body.json) {
-                if (req.headers.content_type !== `application/json` || buffer.length < 1) {
+                if ((req.headers.content_type !== `application/json` && req.headers.content_type !== `application/json; charset=utf-8`) || buffer.length < 1) {
                     if (req.options.schema.body.json.min) {
                         return res.send({
                             error: `ER_INV_DATA`,
@@ -389,31 +389,23 @@ const auth = async function(res, req, next) {
 };
 
 const log = async function(res, req, next) {
-    let message = `[${req.method}] [${req.url}] [${req.headers.ip}]`;
-
-    let data = {};
-
-    if (req.session?.account.id) {
-        data.account_id = req.session.account.id;
-    };
+    let payload = {};
 
     if (req.options.log.payload && req.options.schema) {
         if (req.options.schema.params) {
-            data.params = req.params;
+            payload.params = req.params;
         };
 
         if (req.options.schema.query) {
-            data.query = req.query;
+            payload.query = req.query;
         };
 
         if (req.options.schema.body) {
-            data.body = req.body;
+            payload.body = req.body;
         };
     };
 
-    message += ` [DATA: ${JSON.stringify(data)}]`;
-
-    logger.log(`[REQUEST] ${message}`);
+    logger.log(`[HTTP REQUEST] [${req.method}] [${req.url}] [${req.headers.ip}]${req.session?.account.id ? ` [${req.session.account.id}]` : ``}${Object.keys(payload).length > 0 ? ` [PAYLOAD: ${JSON.stringify(payload)}]` : ``}`);
 
     return next();
 };
@@ -533,7 +525,6 @@ const http = function(method, url, options) {
             res.send(true, 302);
         };
 
-
         req.url = url;
         req.method = method;
 
@@ -572,7 +563,6 @@ const http = function(method, url, options) {
             }
         };
 
-
         if (req.options.limit) {
             let cache_key = `http_limit:url=${req.url}-ip=${req.headers.ip}`;
     
@@ -591,7 +581,6 @@ const http = function(method, url, options) {
         
             cache.set([cache_key], remaining === null ? req.options.limit.attempts - 1 : remaining, req.options.limit.per);
         };
-
 
         let cur_step = 0;
         let max_steps = app.routes.http[method][url].methods.length;
@@ -635,8 +624,15 @@ const ws = function(url) {
                     data = JSON.stringify(data);
                 };
 
-                return ws.__send(`${status}${ws.message?.action ? `::${ws.message?.action}` : ``}${data ? `::${data}` : ``}`);
+                return ws.__send(`${ws.message?.ident ? `${ws.message?.ident}::` : `-1::`}${status}${ws.message?.action ? `::${ws.message?.action}` : ``}${data ? `::${data}` : ``}`);
             };
+
+            ws.message = {
+                ident: `0`,
+                action: `connected`
+            };
+
+            logger.log(`[WS CONNECTED] [${url}] [${ws.headers.ip}]`);
 
             return ws.send();
         },
@@ -665,17 +661,6 @@ const ws = function(url) {
     
                     res.end(data);
                 });
-            };
-
-            req.headers = {
-                cookie: req.getHeader(`cookie`),
-                session: req.getHeader(`session`),
-                challenge: req.getHeader(`challenge`),
-                country: req.getHeader(`cf-ipcountry`) || `??`,
-                ip: req.getHeader(`cf-connecting-ip`) || `127.0.0.1`,
-                sec_websocket_key: req.getHeader('sec-websocket-key'),
-                sec_websocket_protocol: req.getHeader('sec-websocket-protocol'),
-                sec_websocket_extensions: req.getHeader('sec-websocket-extensions')
             };
 
             let session = null;
@@ -712,12 +697,18 @@ const ws = function(url) {
                 res.upgrade(
                     {
                         session: session,
-                        headers: req.headers
+                        headers: {
+                            cookie: req.getHeader(`cookie`),
+                            session: req.getHeader(`session`),
+                            challenge: req.getHeader(`challenge`),
+                            country: req.getHeader(`cf-ipcountry`) || `??`,
+                            ip: req.getHeader(`cf-connecting-ip`) || `127.0.0.1`
+                        }
                     },
                     
-                    req.headers.sec_websocket_key,
-                    req.headers.sec_websocket_protocol,
-                    req.headers.sec_websocket_extensions,
+                    req.getHeader(`sec-websocket-key`),
+                    req.getHeader(`sec-websocket-protocol`),
+                    req.getHeader(`sec-websocket-extensions`),
     
                     context
                 );
@@ -728,8 +719,16 @@ const ws = function(url) {
             message = isBinary ? message.split(`::`) : Buffer.from(message).toString().split(`::`);
 
             ws.message = {
-                action: message[0],
-                data: message[1] || null
+                ident: message[0],
+                action: message[1],
+                data: message[2] || null
+            };
+
+            if (!ws.message.ident || !validator.value(ws.message.ident, { type: `str_integer`, min: 0, max: 1e10 })) {
+                return ws.send({
+                    error: `ER_INV_DATA`,
+                    message: `ident is invalid > ${validator.error()}`
+                }, 2);
             };
 
             if (!ws.message.action || !validator.value(ws.message.action, { type: `pat_string_safe`, min: 1, max: 128 })) {
@@ -832,7 +831,8 @@ const ws = function(url) {
                     }, 2);
                 };
             };
-            
+
+            logger.log(`[WS MESSAGE] [${url}] [${ws.message.action}] [${ws.headers.ip}]${ws.session?.account?.id ? ` [ACCOUNT: ${ws.session.account.id}]` : ``}${callback.options.log.payload && callback.options.schema ? ` [DATA: ${JSON.stringify(ws.message.data)}]` : ``}`);
             
             try {
                 return await app.routes.ws[url][ws.message.action].function(ws, ws.message.data);
@@ -909,7 +909,7 @@ app.publish = function(topic, action, data) {
         data = JSON.stringify(data);
     };
 
-    return app.__publish(topic, `1::${action}${data ? `::${data}` : ``}`);
+    return app.__publish(topic, `0::1::${action}${data ? `::${data}` : ``}`);
 };
 
 app.message = function(url, action, options, callback) {
@@ -920,6 +920,10 @@ app.message = function(url, action, options, callback) {
             ...options.auth
         },
         schema: options.schema,
+        log: {
+            payload: true,
+            ...options.log
+        },
         limit: {
             attempts: 30,
             per: 60,
@@ -957,16 +961,28 @@ app.start = function() {
 
 module.exports = {
     app,
-    cache: require(`./dist/cache`),
-    discord: require(`./dist/discord`),
-    error: require(`./dist/error`),
-    google: require(`./dist/google`),
-    logger: require(`./dist/logger`),
-    mailgun: require(`./dist/mailgun`),
-    mysql: require(`./dist/mysql`),
-    redis: require(`./dist/redis`),
-    session: require(`./dist/session`),
-    telegram: require(`./dist/telegram`),
-    utils: require(`./dist/utils`),
-    validator: require(`./dist/validator`)
+    core: {
+        cache: require(`./dist/core/cache`),
+        error: require(`./dist/core/error`),
+        logger: require(`./dist/core/logger`),
+        mysql: require(`./dist/core/mysql`),
+        redis: require(`./dist/core/redis`),
+        session: require(`./dist/core/session`),
+        utils: require(`./dist/core/utils`),
+        validator: require(`./dist/core/validator`),
+    },
+    mail: {
+        mailgun: require(`./dist/mail/mailgun`)
+    },
+    payment: {
+        coinbase: require(`./dist/payment/coinbase`),
+        cryptomus: require(`./dist/payment/cryptomus`),
+        sellix: require(`./dist/payment/sellix`),
+        stripe: require(`./dist/payment/stripe`),
+    },
+    social: {
+        discord: require(`./dist/social/discord`),
+        google: require(`./dist/social/google`),
+        telegram: require(`./dist/social/telegram`)
+    }
 };
