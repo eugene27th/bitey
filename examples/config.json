@@ -44,8 +44,8 @@
 
     "cloudflare": {
         "turnstile": {
-            "secret_key": "",
-            "site_key": ""
+            "secret_key": "secret_key",
+            "site_key": "site_key"
         },
         "blacklist": [
             "127.0.0.1"

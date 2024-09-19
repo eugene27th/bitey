@@ -1,6 +1,7 @@
 const config = require(`${process.cwd()}/config.json`);
 
 const uws = require(`uWebSockets.js`);
+const crypto = require(`crypto`);
 
 const cache = require(`./dist/core/cache`);
 const mysql = require(`./dist/core/mysql`);
@@ -259,10 +260,17 @@ const parser = function(res, req, next) {
                         req.body.form[part.name] = value;
 
                         continue;
-                    } else if (part.filename.length < 1 || req.options.schema.body.form.properties[part.name].type !== `file`) {
+                    } else if (req.options.schema.body.form.properties[part.name].type !== `file`) {
                         return res.send({
                             error: `ER_INV_DATA`,
                             message: `multipart is invalid > '${part.name}' is invalid > not a file required`
+                        }, 400);
+                    };
+
+                    if (part.filename.length < 1) {
+                        return res.send({
+                            error: `ER_INV_DATA`,
+                            message: `multipart is invalid > '${part.name}' is invalid > file is invalid`
                         }, 400);
                     };
 
@@ -301,7 +309,7 @@ const parser = function(res, req, next) {
                     };
 
                     if (req.options.schema.body.form.properties[part.name].hash) {
-                        file.hash = createHash(`md5`).update(file.buffer).digest(`hex`);
+                        file.hash = crypto.createHash(`md5`).update(file.buffer).digest(`hex`);
                     };
 
                     if (req.body.form[part.name]) {
