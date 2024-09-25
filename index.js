@@ -355,7 +355,7 @@ const auth = async function(res, req, next) {
         req.session.account = cache.get(`account:id=${req.session.id}`) || await mysql.exe(`SELECT * FROM accounts WHERE id = ?`, [req.session.id]);
 
         if (req.session.account) {
-            cache.set([`account:id=${req.session.id}`], account);
+            cache.set([`account:id=${req.session.id}`], req.session.account);
         } else {
             await session.close(res, req);
 
@@ -383,7 +383,7 @@ const auth = async function(res, req, next) {
 
     if (req.session.account.permission === 0) {
         return res.send({
-            error: `ER_ACCOUNT_FROZEN`
+            error: `ER_ACCOUNT_BANNED`
         }, 403);
     };
 
@@ -903,7 +903,7 @@ for (const method of Object.keys(app.routes.http)) {
 
     app[method] = function(url, options, ...callbacks) {
         app.routes.http[method][url] = {
-            methods: [turnstile, auth, parser, log, ...callbacks]
+            methods: [parser, turnstile, auth, log, ...callbacks]
         };
         
         app[`__${method}`](url, http(method, url, options));

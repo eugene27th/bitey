@@ -1,3 +1,6 @@
+const uwse = require(`uwse`);
+
+
 /*
     Возвращаемое значение функций: boolean. true - проверка пройдена, false - не пройдена.
     Описание ошибки в `validator.error()`.
@@ -42,7 +45,7 @@
     Проверка объекта.
 */
 
-if (!app.core.validator.json({
+if (!uwse.core.validator.json({
     username: `salwador`,
     password: null,
     something: `he-he`,
@@ -100,7 +103,7 @@ if (!app.core.validator.json({
         }
     }
 })) {
-    console.log(`json error -> `, app.core.validator.error());
+    console.log(`json error -> `, uwse.core.validator.error());
 };
 
 
@@ -108,7 +111,7 @@ if (!app.core.validator.json({
     Проверка массива.
 */
 
-if (!app.core.validator.array([
+if (!uwse.core.validator.array([
     {
         name: `salwador`,
         aboba: true
@@ -136,7 +139,7 @@ if (!app.core.validator.array([
         }
     }
 })) {
-    console.log(`array error -> `, app.core.validator.error());
+    console.log(`array error -> `, uwse.core.validator.error());
 };
 
 
@@ -144,10 +147,10 @@ if (!app.core.validator.array([
     Проверка значения.
 */
 
-if (!app.core.validator.value(`salwador-aboba`, {
+if (!uwse.core.validator.value(`salwador-aboba`, {
     type: `string`,
     min: 1,
     max: 64
 })) {
-    console.log(`value error -> `, app.core.validator.error());
+    console.log(`value error -> `, uwse.core.validator.error());
 };

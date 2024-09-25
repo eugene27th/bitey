@@ -1,133 +1,33 @@
 let error = null;
 
-let types = {
-    boolean: {
-        typeof: `boolean`
-    },
-    number: {
-        typeof: `number`
-    },
-    integer: {
-        typeof: `number`,
-        integer: true
-    },
-    float: {
-        typeof: `number`,
-        float: true
-    },
-    string: {
-        typeof: `string`
-    },
+const patterns = {
+    ascii: /[\p{ASCII}]/v,
+    latin: ``,
+    cyrillic: ``,
+    latin_cyrillic: ``,
+    date: `[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])`,
+    datetime: `[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]`,
+    timestamp: `^[0-9]{10}$`,
+    url: `^((http|https):\/\/)?(www\.)?([A-Za-zА-Яа-я0-9]{1}[A-Za-zА-Яа-я0-9\-]*\.?)*\.{1}[A-Za-zА-Яа-я0-9-]{2,8}(\/([\w#!:.?+=&%@!\-\/])*)?`,
+    domain: `(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]`,
+    uuid: `^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$`,
+    uuidts: `^[0-9a-f]{13}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{17}$`,
+    filename: `^[0-9a-f]{13}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{17}.(png|jpeg|jpg|webp|gif|zip|txt)$`,
+    email: `^[a-zA-Z0-9_'+*/^&=?~{}\-](\.?[a-zA-Z0-9_'+*/^&=?~{}\-])*\@((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(\:\d{1,3})?)|(((([a-zA-Z0-9][a-zA-Z0-9\-]+[a-zA-Z0-9])|([a-zA-Z0-9]{1,2}))[\.]{1})+([a-zA-Z]{2,6})))$`,
+    phone: `^[0-9]{6,12}$`,
+    ipv4: `^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$`
+};
 
-    id: {
-        typeof: `number`,
-        integer: true,
-        min: 1,
-        max: 1e18
-    },
-    
-    str_boolean: {
-        typeof: `string`,
-        enums: [`true`, `false`]
-    },
-    str_number: {
-        typeof: `string`,
-        number: true
-    },
-    str_integer: {
-        typeof: `string`,
-        number: true,
-        integer: true
-    },
-    str_float: {
-        typeof: `string`,
-        number: true,
-        float: true
-    },
-
-    str_id: {
-        typeof: `string`,
-        number: true,
-        integer: true,
-        min: 1,
-        max: 1e18
-    },
-
-    pat_string_default: {
-        typeof: `string`,
-        pattern: `^[a-zA-Zа-яА-ЯёЁ0-9.,=~"/%#:;!?@$()_+-][a-zA-Zа-яА-ЯёЁ0-9.,=~"/%#:;!?@$()_+ -]*[a-zA-Zа-яА-ЯёЁ0-9.,=~"/%#:;!?@$()_+-]$`
-    },
-    pat_string_safe: {
-        typeof: `string`,
-        pattern: `^[a-zA-Z0-9._-]+$`
-    },
-    pat_password: {
-        typeof: `string`,
-        pattern: `^[a-zA-Zа-яА-ЯёЁ0-9.,=~"'*/%#<>^&|:;!?@$()_+-]+$`
-    },
-    pat_date: {
-        typeof: `string`,
-        pattern: `[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])`
-    },
-    pat_datetime: {
-        typeof: `string`,
-        pattern: `[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]`
-    },
-    pat_timestamp: {
-        typeof: `string`,
-        pattern: `^[0-9]{10}$`
-    },
-    pat_url: {
-        typeof: `string`,
-        pattern: `^((ftp|http|https):\/\/)?(www\.)?([A-Za-zА-Яа-я0-9]{1}[A-Za-zА-Яа-я0-9\-]*\.?)*\.{1}[A-Za-zА-Яа-я0-9-]{2,8}(\/([\w#!:.?+=&%@!\-\/])*)?`
-    },
-    pat_domain: {
-        typeof: `string`,
-        pattern: `(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]`
-    },
-    pat_uuid: {
-        typeof: `string`,
-        pattern: `^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$`
-    },
-    pat_uuidts: {
-        typeof: `string`,
-        pattern: `^[0-9a-f]{13}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{17}$`
-    },
-    pat_filename: {
-        typeof: `string`,
-        pattern: `^[0-9a-f]{13}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{17}.(png|jpeg|jpg|webp|gif)$`
-    },
-    pat_email: {
-        typeof: `string`,
-        pattern: `^[a-zA-Z0-9_'+*/^&=?~{}\-](\.?[a-zA-Z0-9_'+*/^&=?~{}\-])*\@((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(\:\d{1,3})?)|(((([a-zA-Z0-9][a-zA-Z0-9\-]+[a-zA-Z0-9])|([a-zA-Z0-9]{1,2}))[\.]{1})+([a-zA-Z]{2,6})))$`
-    },
-    pat_phone: {
-        typeof: `string`,
-        pattern: `^[0-9]{6,12}$`
-    },
-    pat_ipv4: {
-        typeof: `string`,
-        pattern: `^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$`
-    },
-
-    enum_mimetype: {
-        typeof: `string`,
-        enums: [
-            `image/png`, `image/jpeg`, `image/webp`, `image/gif`, `image/svg+xml`, `application/zip`, `application/zip-compressed`, `application/x-zip-compressed`, `video/mp4`
-        ]
-    },
-    enum_country: {
-        typeof: `string`,
-        enums: [
-            `AA`
-        ]
-    },
-    enum_language: {
-        typeof: `string`,
-        enums: [
-            `ab`, `aa`, `af`, `ak`, `sq`, `am`, `ar`, `an`, `hy`, `as`, `av`, `ae`, `ay`, `az`, `bm`, `ba`, `eu`, `be`, `bn`, `bi`, `bs`, `br`, `bg`, `my`, `ca`, `ch`, `ce`, `ny`, `zh`, `cu`, `cv`, `kw`, `co`, `cr`, `hr`, `cs`, `da`, `dv`, `nl`, `dz`, `en`, `eo`, `et`, `ee`, `fo`, `fj`, `fi`, `fr`, `fy`, `ff`, `gd`, `gl`, `lg`, `ka`, `de`, `el`, `kl`, `gn`, `gu`, `ht`, `ha`, `he`, `hz`, `hi`, `ho`, `hu`, `is`, `io`, `ig`, `id`, `ia`, `ie`, `iu`, `ik`, `ga`, `it`, `ja`, `jv`, `kn`, `kr`, `ks`, `kk`, `km`, `ki`, `rw`, `ky`, `kv`, `kg`, `ko`, `kj`, `ku`, `lo`, `la`, `lv`, `li`, `ln`, `lt`, `lu`, `lb`, `mk`, `mg`, `ms`, `ml`, `mt`, `gv`, `mi`, `mr`, `mh`, `mn`, `na`, `nv`, `nd`, `nr`, `ng`, `ne`, `no`, `nb`, `nn`, `ii`, `oc`, `oj`, `or`, `om`, `os`, `pi`, `ps`, `fa`, `pl`, `pt`, `pa`, `qu`, `ro`, `rm`, `rn`, `ru`, `se`, `sm`, `sg`, `sa`, `sc`, `sr`, `sn`, `sd`, `si`, `sk`, `sl`, `so`, `st`, `es`, `su`, `sw`, `ss`, `sv`, `tl`, `ty`, `tg`, `ta`, `tt`, `te`, `th`, `bo`, `ti`, `to`, `ts`, `tn`, `tr`, `tk`, `tw`, `ug`, `uk`, `ur`, `uz`, `ve`, `vi`, `vo`, `wa`, `cy`, `wo`, `xh`, `yi`, `yo`, `za`, `zu`
-        ]
-    }
+const enums = {
+    mimetype: [
+        `image/png`, `image/jpeg`, `image/webp`, `image/gif`, `image/svg+xml`, `application/zip`, `application/zip-compressed`, `application/x-zip-compressed`, `video/mp4`
+    ],
+    country: [
+        `AD`, `AE`, `AF`, `AG`, `AI`, `AL`, `AM`, `AO`, `AQ`, `AR`, `AS`, `AT`, `AU`, `AW`, `AX`, `AZ`, `BA`, `BB`, `BD`, `BE`, `BF`, `BG`, `BH`, `BI`, `BJ`, `BL`, `BM`, `BN`, `BO`, `BQ`, `BR`, `BS`, `BT`, `BV`, `BW`, `BY`, `BZ`, `CA`, `CC`, `CD`, `CF`, `CG`, `CH`, `CI`, `CK`, `CL`, `CM`, `CN`, `CO`, `CR`, `CU`, `CV`, `CW`, `CX`, `CY`, `CZ`, `DE`, `DJ`, `DK`, `DM`, `DO`, `DZ`, `EC`, `EE`, `EG`, `EH`, `ER`, `ES`, `ET`, `FI`, `FJ`, `FK`, `FM`, `FO`, `FR`, `GA`, `GB`, `GD`, `GE`, `GF`, `GG`, `GH`, `GI`, `GL`, `GM`, `GN`, `GP`, `GQ`, `GR`, `GS`, `GT`, `GU`, `GW`, `GY`, `HK`, `HM`, `HN`, `HR`, `HT`, `HU`, `ID`, `IE`, `IL`, `IM`, `IN`, `IO`, `IQ`, `IR`, `IS`, `IT`, `JE`, `JM`, `JO`, `JP`, `KE`, `KG`, `KH`, `KI`, `KM`, `KN`, `KP`, `KR`, `KW`, `KY`, `KZ`, `LA`, `LB`, `LC`, `LI`, `LK`, `LR`, `LS`, `LT`, `LU`, `LV`, `LY`, `MA`, `MC`, `MD`, `ME`, `MF`, `MG`, `MH`, `MK`, `ML`, `MM`, `MN`, `MO`, `MP`, `MQ`, `MR`, `MS`, `MT`, `MU`, `MV`, `MW`, `MX`, `MY`, `MZ`, `NA`, `NC`, `NE`, `NF`, `NG`, `NI`, `NL`, `NO`, `NP`, `NR`, `NU`, `NZ`, `OM`, `PA`, `PE`, `PF`, `PG`, `PH`, `PK`, `PL`, `PM`, `PN`, `PR`, `PS`, `PT`, `PW`, `PY`, `QA`, `RE`, `RO`, `RS`, `RU`, `RW`, `SA`, `SB`, `SC`, `SD`, `SE`, `SG`, `SH`, `SI`, `SJ`, `SK`, `SL`, `SM`, `SN`, `SO`, `SR`, `SS`, `ST`, `SV`, `SX`, `SY`, `SZ`, `TC`, `TD`, `TF`, `TG`, `TH`, `TJ`, `TK`, `TL`, `TM`, `TN`, `TO`, `TR`, `TT`, `TV`, `TW`, `TZ`, `UA`, `UG`, `UM`, `US`, `UY`, `UZ`, `VA`, `VC`, `VE`, `VG`, `VI`, `VN`, `VU`, `WF`, `WS`, `YE`, `YT`, `ZA`, `ZM`, `ZW`
+    ],
+    language: [
+        `ab`, `aa`, `af`, `ak`, `sq`, `am`, `ar`, `an`, `hy`, `as`, `av`, `ae`, `ay`, `az`, `bm`, `ba`, `eu`, `be`, `bn`, `bi`, `bs`, `br`, `bg`, `my`, `ca`, `ch`, `ce`, `ny`, `zh`, `cu`, `cv`, `kw`, `co`, `cr`, `hr`, `cs`, `da`, `dv`, `nl`, `dz`, `en`, `eo`, `et`, `ee`, `fo`, `fj`, `fi`, `fr`, `fy`, `ff`, `gd`, `gl`, `lg`, `ka`, `de`, `el`, `kl`, `gn`, `gu`, `ht`, `ha`, `he`, `hz`, `hi`, `ho`, `hu`, `is`, `io`, `ig`, `id`, `ia`, `ie`, `iu`, `ik`, `ga`, `it`, `ja`, `jv`, `kn`, `kr`, `ks`, `kk`, `km`, `ki`, `rw`, `ky`, `kv`, `kg`, `ko`, `kj`, `ku`, `lo`, `la`, `lv`, `li`, `ln`, `lt`, `lu`, `lb`, `mk`, `mg`, `ms`, `ml`, `mt`, `gv`, `mi`, `mr`, `mh`, `mn`, `na`, `nv`, `nd`, `nr`, `ng`, `ne`, `no`, `nb`, `nn`, `ii`, `oc`, `oj`, `or`, `om`, `os`, `pi`, `ps`, `fa`, `pl`, `pt`, `pa`, `qu`, `ro`, `rm`, `rn`, `ru`, `se`, `sm`, `sg`, `sa`, `sc`, `sr`, `sn`, `sd`, `si`, `sk`, `sl`, `so`, `st`, `es`, `su`, `sw`, `ss`, `sv`, `tl`, `ty`, `tg`, `ta`, `tt`, `te`, `th`, `bo`, `ti`, `to`, `ts`, `tn`, `tr`, `tk`, `tw`, `ug`, `uk`, `ur`, `uz`, `ve`, `vi`, `vo`, `wa`, `cy`, `wo`, `xh`, `yi`, `yo`, `za`, `zu`
+    ]
 };
 
 
@@ -141,70 +41,223 @@ const f_value = function(value, schema) {
 		return false;
 	};
 
-	let required = types[schema.type];
+    switch (schema.type) {
+        case `boolean`: {
+            if (typeof value !== `boolean` && value !== `true` && value !== `false`) {
+                error = `'boolean' required`;
+                return false;
+            };
 
-	if (!required) {
-		error = `unknown type`;
-		return false;
-	};
+            break;
+        };
 
-	// value typeof
-	if (typeof value !== required.typeof) {
-		error = `'${required.typeof}' required, got: '${typeof value}'`;
-		return false;
-	};
+        case `string`: {
+            if (typeof value !== `string`) {
+                error = `'string' required`;
+                return false;
+            };
+            
+            if (schema.min !== undefined && value.length < schema.min) {
+                error = `'${schema.min} < length' required`;
+                return false;
+            };
+            
+            if (schema.max !== undefined && value.length > schema.max) {
+                error = `'length < ${schema.max}' required`;
+                return false;
+            };
 
-	// required enums
-	if (required.enums && !required.enums.includes(value)) {
-		error = `'${required.enums.join(` / `)}' required`;
-		return false;
-	};
+            break;
+        };
 
-	if (schema.enums && !schema.enums.includes(value)) {
-		error = `'${schema.enums.join(` / `)}' required`;
-		return false;
-	};
+        case `int`: {
+            if (typeof value === `string`) {
+                value = parseInt(value);  
+            };
+    
+            if (isNaN(value) || value % 1 !== 0) {
+                error = `'int' required`;
+                return false;
+            };
+    
+            if (schema.min !== undefined && value < schema.min) {
+                error = `'${schema.min} < value' required`;
+                return false;
+            };
+            
+            if (schema.max !== undefined && value > schema.max) {
+                error = `'value < ${schema.max}' required`;
+                return false;
+            };
 
-	// if number
-	if ((required.typeof === `number` || required.number) && isNaN(value)) {
-		error = `'number' required`;
-		return false;
-	};
+            break;
+        };
 
-	// if integer
-	if (required.integer && value % 1 !== 0) {
-		error = `'integer number' required`;
-		return false;
-	};
+        case `uint`: {
+            if (typeof value === `string`) {
+                value = parseInt(value);  
+            };
+    
+            if (isNaN(value) || value % 1 !== 0 || value < 0) {
+                error = `'uint' required`;
+                return false;
+            };
+            
+            if (schema.max !== undefined && value > schema.max) {
+                error = `'value < ${schema.max}' required`;
+                return false;
+            };
 
-	// if float
-	if (required.float && value % 1 === 0) {
-		error = `'float number' required`;
-		return false;
-	};
+            break;
+        };
 
-	// length/size
-	let min = typeof schema.min !== `undefined` ? schema.min : required.min;
-	let max = typeof schema.max !== `undefined` ? schema.max : required.max;
-	let length = (required.typeof === `string` && !required.number) ? value.length : value;
+        case `int8`: {
+            if (typeof value === `string`) {
+                value = parseInt(value);  
+            };
+    
+            if (isNaN(value) || value % 1 !== 0 || value < -128 || value > 128) {
+                error = `'int8' required`;
+                return false;
+            };
 
-	if ((min || min === 0) && length < min) {
-		error = `'${min} < value (length)' required`;
-		return false;
-	};
-	
-	if ((max || max === 0) && length > max) {
-		error = `'value (length) < ${max}' required`;
-		return false;
-	};
-	
-	// pattern
-	if (required.pattern && !(new RegExp(required.pattern)).test(value)) {
-		error = `string in pattern '${schema.type}' required`;
-		return false;
-	};
+            break;
+        };
 
-	return true;
+        case `uint8`: {
+            if (typeof value === `string`) {
+                value = parseInt(value);  
+            };
+    
+            if (isNaN(value) || value % 1 !== 0 || value < 0 || value > 256) {
+                error = `'uint8' required`;
+                return false;
+            };
+
+            break;
+        };
+
+        case `int16`: {
+            if (typeof value === `string`) {
+                value = parseInt(value);  
+            };
+    
+            if (isNaN(value) || value % 1 !== 0 || value < -32768 || value > 32768) {
+                error = `'int16' required`;
+                return false;
+            };
+
+            break;
+        };
+
+        case `uint16`: {
+            if (typeof value === `string`) {
+                value = parseInt(value);  
+            };
+    
+            if (isNaN(value) || value % 1 !== 0 || value < 0 || value > 65536) {
+                error = `'uint16' required`;
+                return false;
+            };
+
+            break;
+        };
+
+        case `int32`: {
+            if (typeof value === `string`) {
+                value = parseInt(value);  
+            };
+    
+            if (isNaN(value) || value % 1 !== 0 || value < -2147483648 || value > 2147483648) {
+                error = `'int32' required`;
+                return false;
+            };
+
+            break;
+        };
+
+        case `uint32`: {
+            if (typeof value === `string`) {
+                value = parseInt(value);  
+            };
+    
+            if (isNaN(value) || value % 1 !== 0 || value < 0 || value > 4294967295) {
+                error = `'uint32' required`;
+                return false;
+            };
+
+            break;
+        };
+
+        case `float`: {
+            if (typeof value === `string`) {
+                value = parseFloat(value);  
+            };
+    
+            if (isNaN(value)) {
+                error = `'float' required`;
+                return false;
+            };
+    
+            if (schema.min !== undefined && value < schema.min) {
+                error = `'${schema.min} < value' required`;
+                return false;
+            };
+            
+            if (schema.max !== undefined && value > schema.max) {
+                error = `'value < ${schema.max}' required`;
+                return false;
+            };
+
+            break;
+        };
+
+        case `enum`: {
+            let array = schema.enum;
+
+            if (typeof schema.enum === `string`) {
+                array = patterns[schema.enum];
+            };
+    
+            if (!array.includes(value)) {
+                error = `'${enums[schema.enum].join(` / `)}' required`;
+                return false;
+            };
+
+            break;
+        };
+
+        case `pattern`: {
+            let pattern = schema.pattern;
+
+            if (patterns[schema.pattern]) {
+                pattern = patterns[schema.pattern];
+            };
+    
+            if (!(new RegExp(pattern)).test(value)) {
+                error = `pattern '${schema.pattern}' required`;
+                return false;
+            };
+    
+            if (schema.min !== undefined && value.length < schema.min) {
+                error = `'${schema.min} < length' required`;
+                return false;
+            };
+            
+            if (schema.max !== undefined && value.length > schema.max) {
+                error = `'length < ${schema.max}' required`;
+                return false;
+            };
+
+            break;
+        };
+    
+        default: {
+            return false;
+        };
+    };
+
+    return true;
 };
 
 const f_array = function(array, schema) {
@@ -215,12 +268,12 @@ const f_array = function(array, schema) {
 
     let length = array.length;
 
-    if (schema.min && length < schema.min) {
+    if (schema.min !== undefined && length < schema.min) {
         error = `'${schema.min} < length' required`;
         return false;
     };
 
-    if (schema.max && length > schema.max) {
+    if (schema.max !== undefined && length > schema.max) {
         error = `'length < ${schema.max}' required`;
         return false;
     };
@@ -283,12 +336,12 @@ const f_json = function(json, schema) {
 
 	const json_length = Object.keys(json).length;
 
-	if (schema.min && json_length < schema.min) {
+	if (schema.min !== undefined && json_length < schema.min) {
 		error = `'${schema.min} < length' required`;
 		return false;
 	};
 
-	if (schema.max && json_length > schema.max) {
+	if (schema.max !== undefined && json_length > schema.max) {
 		error = `'length < ${schema.max}' required`;
 		return false;
 	};

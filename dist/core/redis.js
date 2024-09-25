@@ -19,6 +19,4 @@ redis.connect().then(async function() {
 });
 
 
-module.exports = {
-    redis
-};
+module.exports = redis;

@@ -1,10 +1,13 @@
+const uwse = require(`uwse`);
+
+
 /*
     Получение ссылки для авторизации.
     
     Возвращаемое значение: url. Пример: https://discord.com/oauth2/authorize?client_id=client_id&response_type=code&redirect_uri=redirect_uri&scope=identify+openid&state=STATE.
 */
 
-let authurl = app.social.discord.url(`STATE`);
+let authurl = uwse.social.discord.url(`STATE`);
 
 
 /*
@@ -22,4 +25,4 @@ let authurl = app.social.discord.url(`STATE`);
     }
 */
 
-let user = app.social.discord.user(`oauth_code`);
+let user = uwse.social.discord.user(`oauth_code`);

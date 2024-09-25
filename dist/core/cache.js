@@ -82,7 +82,7 @@ const get = function(key) {
     return structuredClone(data.value);
 };
 
-const del = function(keys, del_dup = false) {
+const del = function(keys, deleq = false) {
     if (!Array.isArray(keys)) {
         keys = [keys];
     };
@@ -99,12 +99,12 @@ const del = function(keys, del_dup = false) {
             continue;
         };
 
-        if (del_dup) {
+        if (deleq) {
             let value = storage[path.folder][path.key];
 
             for (let [folder, keys] of Object.entries(storage)) {
                 for (let [key, data] of Object.entries(keys)) {
-                    if (value === data) {
+                    if (JSON.stringify(value) === JSON.stringify(data)) {
                         delete storage[folder][key];
                     };
                 };

@@ -1,3 +1,6 @@
+const uwse = require(`uwse`);
+
+
 /*
     Пользовательский запрос.
     В данном случае, мы получаем строку из `accounts` где username = salwador.
@@ -12,7 +15,7 @@
             }
 */
 
-let exe = await app.core.mysql.exe(`
+let exe = await uwse.core.mysql.exe(`
     SELECT * FROM accounts WHERE username = ?
 `, [`salwador`], { array: true });
 
@@ -33,7 +36,7 @@ let exe = await app.core.mysql.exe(`
     SQL выражение: "SELECT * FROM accounts WHERE `username` = 'salwador'".
 */
 
-let get = await app.core.mysql.get(`accounts`, {
+let get = await uwse.core.mysql.get(`accounts`, {
     username: `salwador`
 }, {
     array: true
@@ -56,7 +59,7 @@ let get = await app.core.mysql.get(`accounts`, {
     SQL выражение: "INSERT INTO accounts SET `username` = 'salwador', `edited` = '1234567890' ON DUPLICATE KEY UPDATE `edited` = '1234567890'".
 */
 
-let ins = await app.core.mysql.ins(`accounts`, {
+let ins = await uwse.core.mysql.ins(`accounts`, {
     username: `salwador`,
     edited: `1234567890`
 }, {
@@ -78,7 +81,7 @@ let ins = await app.core.mysql.ins(`accounts`, {
     SQL выражение: "UPDATE accounts SET `username` = 'salwadoriche' WHERE `id` = '1'".
 */
 
-let upd = await app.core.mysql.upd(`accounts`, { id: 1 }, {
+let upd = await uwse.core.mysql.upd(`accounts`, { id: 1 }, {
     username: `salwadoriche`
 });
 
@@ -95,4 +98,4 @@ let upd = await app.core.mysql.upd(`accounts`, { id: 1 }, {
     SQL выражение: "DELETE FROM accounts WHERE `id` = '1'".
 */
 
-let del = await app.core.mysql.del(`accounts`, { id: 1 });
+let del = await uwse.core.mysql.del(`accounts`, { id: 1 });

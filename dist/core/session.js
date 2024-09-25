@@ -68,7 +68,7 @@ const get = async function(res, req) {
 
 const create = async function(res, req, id) {
     const cookie_value = `${utils.string({ length: 6 })}.${utils.string({ length: 4 })}.${utils.string({ length: 8 })}.${utils.string({ length: 16 })}`;
-    const cookie_encrypted = `${cookie_value}.${crypto.crypto.createHmac(`sha256`, config.session.secret).update(cookie_value).digest(`base64`).replace(/\=+$/, ``)}`;
+    const cookie_encrypted = `${cookie_value}.${crypto.createHmac(`sha256`, config.session.secret).update(cookie_value).digest(`base64`).replace(/\=+$/, ``)}`;
 
     res.setHeader(`Set-Cookie`, cookie.serialize(config.session.name, cookie_encrypted, config.session.options));
 

@@ -9,7 +9,7 @@ if (!config.telegram) {
 const utils = require(`../core/utils`);
 
 
-const user = function(payload) {
+const valid = function(payload) {
     let { hash, ...data } = payload;
 
     let secret = createHash(`sha256`).update(config.telegram.token).digest();
@@ -52,6 +52,6 @@ const send = async function(bot_id, chat_id, text) {
 
 
 module.exports = {
-    user,
+    valid,
     send
 };

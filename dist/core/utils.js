@@ -21,14 +21,9 @@ const date = function(mode = `d.m.y`) {
     let y = date.getUTCFullYear();
 
     switch (mode) {
-        case `d.m.y`:
-            return `${d}.${m}.${y}`;
-
-        case `y-m-d`:
-            return `${y}-${m}-${d}`;
-    
-        case `m.y`:
-            return `${m}.${y}`;
+        case `d.m.y`: return `${d}.${m}.${y}`;
+        case `y-m-d`: return `${y}-${m}-${d}`;
+        case `m.y`: return `${m}.${y}`;
     };
 };
 
@@ -45,31 +40,26 @@ const uuidts = function() {
     return `${uuid.slice(0,4)}${timestamp.slice(5)}${uuid.slice(4, 30)}${timestamp.slice(0,5)}${uuid.slice(-6)}`;
 };
 
-const string = function(options = {}) {
-    let chars = {
-        all: `QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789`,
-        numbers: `0123456789`,
-        letters: `QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm`
-    };
+const string = function(length, tocase) {
+    let chars = `QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789`;
 
-    let length = options.length || 30;
-    let mode = options.mode || `all`;
-
-    let string = ``;
+    let result = ``;
 
     for (let i = 0; i < length; i++) {
-        string += chars[mode].charAt(Math.floor(Math.random() * chars[mode].length));
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
     };
 
-    switch (options.case) {
-        case `up`:
-            return string.toUpperCase();
+    if (tocase) {
+        if (tocase === `up`) {
+            return result.toUpperCase();
+        };
 
-        case `low`:
-            return string.toLowerCase();
+        if (tocase === `low`) {
+            return result.toLowerCase();
+        };
     };
 
-    return string;
+    return result;
 };
 
 const merge = function(target, ...sources) {
