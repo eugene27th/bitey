@@ -12,7 +12,7 @@ const crypto = require(`crypto`);
 const create = async function(currency, amount, title) {
     let form_price = new URLSearchParams();
         form_price.append(`currency`, currency);
-        form_price.append(`unit_amount`, amount * 100);
+        form_price.append(`unit_amount`, amount);
         form_price.append(`product_data[name]`, title);
 
     let price_request = await fetch(`https://api.stripe.com/v1/prices`, {

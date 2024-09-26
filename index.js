@@ -974,6 +974,7 @@ module.exports = {
         error: require(`./dist/core/error`),
         logger: require(`./dist/core/logger`),
         mysql: require(`./dist/core/mysql`),
+        password: require(`./dist/core/password`),
         redis: require(`./dist/core/redis`),
         session: require(`./dist/core/session`),
         utils: require(`./dist/core/utils`),

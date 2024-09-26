@@ -23,6 +23,11 @@
         }
     },
 
+    "password": {
+        "salt": "something-very-secret",
+        "length": 32
+    },
+
     "database": {
         "mysql": {
             "host": "127.0.0.1",

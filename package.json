@@ -1,12 +1,12 @@
 {
     "name": "uwse",
+    "author": "eugene27th",
     "version": "0.1.0",
     "main": "index.js",
     "exports": {
         "require": "./index.js"
     },
     "dependencies": {
-        "bcrypt": "^5.1.1",
         "cookie": "^0.6.0",
         "mysql2": "^3.9.4",
         "redis": "^4.6.13",
