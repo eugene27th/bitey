@@ -1,4 +1,4 @@
-const uwse = require(`uwse`);
+const bitey = require(`bitey`);
 
 
 /*
@@ -45,7 +45,7 @@ const uwse = require(`uwse`);
     Проверка объекта.
 */
 
-if (!uwse.core.validator.json({
+if (!bitey.core.validator.json({
     username: `salwador`,
     password: null,
     something: `he-he`,
@@ -103,7 +103,7 @@ if (!uwse.core.validator.json({
         }
     }
 })) {
-    console.log(`json error -> `, uwse.core.validator.error());
+    console.log(`json error -> `, bitey.core.validator.error());
 };
 
 
@@ -111,7 +111,7 @@ if (!uwse.core.validator.json({
     Проверка массива.
 */
 
-if (!uwse.core.validator.array([
+if (!bitey.core.validator.array([
     {
         name: `salwador`,
         aboba: true
@@ -139,7 +139,7 @@ if (!uwse.core.validator.array([
         }
     }
 })) {
-    console.log(`array error -> `, uwse.core.validator.error());
+    console.log(`array error -> `, bitey.core.validator.error());
 };
 
 
@@ -147,10 +147,10 @@ if (!uwse.core.validator.array([
     Проверка значения.
 */
 
-if (!uwse.core.validator.value(`salwador-aboba`, {
+if (!bitey.core.validator.value(`salwador-aboba`, {
     type: `string`,
     min: 1,
     max: 64
 })) {
-    console.log(`value error -> `, uwse.core.validator.error());
+    console.log(`value error -> `, bitey.core.validator.error());
 };

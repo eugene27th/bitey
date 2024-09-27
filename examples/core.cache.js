@@ -1,18 +1,18 @@
-const uwse = require(`uwse`);
+const bitey = require(`bitey`);
 
 
 /*
     Получить из кэша значение по ключу `account:username=salwador`.
 */
 
-let getkey = uwse.core.cache.get(`account:username=salwador`);
+let getkey = bitey.core.cache.get(`account:username=salwador`);
 
 
 /*
     Получить из кэша значение по директории `account:`.
 */
 
-let getdir = uwse.core.cache.get(`account:`);
+let getdir = bitey.core.cache.get(`account:`);
 
 
 /*
@@ -22,7 +22,7 @@ let getdir = uwse.core.cache.get(`account:`);
     Префикс перед `:` означает директорию, к которой будет относиться ключ. Директория по-умолчанию: `default`.
 */
 
-let set = uwse.core.cache.set([`account:id=1`, `account:username=salwador`], {
+let set = bitey.core.cache.set([`account:id=1`, `account:username=salwador`], {
     username: `salwador`,
     password: `aboba`
 }, 300);
@@ -35,4 +35,4 @@ let set = uwse.core.cache.set([`account:id=1`, `account:username=salwador`], {
     Если во втором аргументе функции указано `true`, то будут удалены все ключи с таким же значением.
 */
 
-let del = uwse.core.cache.del([`accounts:`, `account:id=1`], true);
+let del = bitey.core.cache.del([`accounts:`, `account:id=1`], true);

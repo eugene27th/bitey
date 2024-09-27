@@ -13,13 +13,12 @@
     },
 
     "session": {
-        "name": "uwse-example",
+        "name": "bitey-example",
         "secret": "something-secret",
         "termination_new_ip": true,
         "options": {
             "path": "/",
-            "httpOnly": false,
-            "maxAge": 604800
+            "age": 604800
         }
     },
 

@@ -7,8 +7,8 @@ if (!config.session) {
 
 
 const crypto = require(`crypto`);
-const cookie = require(`cookie`);
 
+const cookie = require(`./cookie`);
 const cache = require(`./cache`);
 const redis = require(`./redis`);
 const utils = require(`./utils`);
@@ -67,10 +67,10 @@ const get = async function(res, req) {
 };
 
 const create = async function(res, req, id) {
-    const cookie_value = `${utils.string({ length: 6 })}.${utils.string({ length: 4 })}.${utils.string({ length: 8 })}.${utils.string({ length: 16 })}`;
+    const cookie_value = `${utils.string(6)}.${utils.string(4)}.${utils.string(8)}.${utils.string(16)}`;
     const cookie_encrypted = `${cookie_value}.${crypto.createHmac(`sha256`, config.session.secret).update(cookie_value).digest(`base64`).replace(/\=+$/, ``)}`;
 
-    res.setHeader(`Set-Cookie`, cookie.serialize(config.session.name, cookie_encrypted, config.session.options));
+    res.setHeader(`Set-Cookie`, cookie.serialize(config.session.name, cookie_encrypted));
 
     const session = {
         id: id,
@@ -117,8 +117,7 @@ const edit = async function(req, data) {
 const close = async function(res, req) {
     if (req.session) {
         res.setHeader(`Set-Cookie`, cookie.serialize(config.session.name, ``, {
-            ...config.session.options,
-            maxAge: 0
+            age: 0
         }));
 
         await redis.del(`session:${config.session.name}:${req.session.cookie_value}`);

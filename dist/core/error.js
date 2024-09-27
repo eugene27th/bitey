@@ -1,4 +1,4 @@
-const standart = class {
+const api = class {
     constructor(status, code, extra) {
         this.status = status;
         this.code = code;
@@ -11,5 +11,5 @@ const standart = class {
 
 
 module.exports = {
-    standart
+    api
 };

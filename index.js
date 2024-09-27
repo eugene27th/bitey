@@ -962,7 +962,7 @@ app.start = function() {
     };
 
     app.listen(config.port, function(token) {
-        token ? console.log(`[UWSE] [INFO] uWS started on port: ${config.port}.`) : console.log(`[UWSE] [ERROR] uWS not started.`);
+        token ? console.log(`[BITEY] [INFO] uWS started on port: ${config.port}.`) : console.log(`[BITEY] [ERROR] uWS not started.`);
     });
 };
 
@@ -971,6 +971,7 @@ module.exports = {
     app,
     core: {
         cache: require(`./dist/core/cache`),
+        cookie: require(`./dist/core/cookie`),
         error: require(`./dist/core/error`),
         logger: require(`./dist/core/logger`),
         mysql: require(`./dist/core/mysql`),
