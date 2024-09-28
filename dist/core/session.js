@@ -8,31 +8,25 @@ if (!config.session) {
 
 const crypto = require(`crypto`);
 
-const cookie = require(`./cookie`);
 const cache = require(`./cache`);
 const redis = require(`./redis`);
 const utils = require(`./utils`);
+const cookie = require(`./cookie`);
 
 
 const get = async function(res, req) {
-    const cookie_string = req.headers.cookie || req.headers.session || ``;
+    const cookies = cookie.parse(req.headers.cookie || req.headers.session);
 
-    if (cookie_string.length < 1) {
-        return null;
-    };
-
-    const cookies = cookie.parse(cookie_string);
-
-    if (!cookies[config.session.name]) {
+    if (!cookies || !cookies[config.session.name]) {
         return null;
     };
 
     const cookie_value = cookies[config.session.name].slice(0, cookies[config.session.name].lastIndexOf(`.`));
 
-    const input_buffer = Buffer.from(cookies[config.session.name]);
+    const incoming_buffer = Buffer.from(cookies[config.session.name]);
     const expected_buffer = Buffer.from(`${cookie_value}.${crypto.createHmac(`sha256`, config.session.secret).update(cookie_value).digest(`base64`).replace(/\=+$/, ``)}`);
     
-    if (expected_buffer.length !== input_buffer.length || !crypto.timingSafeEqual(expected_buffer, input_buffer)) {
+    if (expected_buffer.length !== incoming_buffer.length || !crypto.timingSafeEqual(expected_buffer, incoming_buffer)) {
         return null;
     };
 
@@ -48,12 +42,7 @@ const get = async function(res, req) {
         return null;
     };
 
-    try {
-        session = JSON.parse(session);
-    } catch (err) {
-        await redis.del(`session:${config.session.name}:${cookie_value}`);
-        return null;
-    };
+    session = JSON.parse(session);
 
     if (config.session.termination_new_ip && session.ip !== req.headers.ip) {
         await close(res, req);
@@ -88,24 +77,15 @@ const create = async function(res, req, id) {
 };
 
 const edit = async function(req, data) {
-    let session_key = `session:${config.session.name}:${req.session.cookie_value}`;
-    let session = await redis.get(session_key);
+    let session = await redis.get(`session:${config.session.name}:${req.session.cookie_value}`);
 
     if (!session) {
-        return null;
+        return false;
     };
 
-    try {
-        session = JSON.parse(session);
-    } catch (err) {
-        return null;
-    };
+    session = utils.merge(JSON.parse(session), data);
 
-    if (Object.keys(data).length > 0) {
-        session = utils.merge(session, data);
-    };
-
-    await redis.set(session_key, JSON.stringify(session), {
+    await redis.set(`session:${config.session.name}:${req.session.cookie_value}`, JSON.stringify(session), {
         EX: config.session.options.maxAge
     });
     

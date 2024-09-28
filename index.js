@@ -352,10 +352,10 @@ const auth = async function(res, req, next) {
     req.session = await session.get(res, req);
 
     if (req.session) {
-        req.session.account = cache.get(`account:id=${req.session.id}`) || await mysql.exe(`SELECT * FROM accounts WHERE id = ?`, [req.session.id]);
+        req.session.account = cache.get(`accounts:id=${req.session.id}`) || await mysql.exe(`SELECT * FROM accounts WHERE id = ?`, [req.session.id]);
 
         if (req.session.account) {
-            cache.set([`account:id=${req.session.id}`], req.session.account);
+            cache.set([`accounts:id=${req.session.id}`], req.session.account);
         } else {
             await session.close(res, req);
 
@@ -677,10 +677,10 @@ const ws = function(url) {
                 session = await session.get(res, req);
 
                 if (session) {
-                    session.account = cache.get(`account:id=${session.id}`) || await mysql.exe(`SELECT * FROM accounts WHERE id = ?`, [session.id]);
+                    session.account = cache.get(`accounts:id=${session.id}`) || await mysql.exe(`SELECT * FROM accounts WHERE id = ?`, [session.id]);
             
                     if (session.account) {
-                        cache.set([`account:id=${session.id}`], account);
+                        cache.set([`accounts:id=${session.id}`], account);
 
                         if (session.account.permission === 0) {
                             return res.send({

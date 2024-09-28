@@ -8,6 +8,7 @@ const patterns = {
     date: `[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])`,
     datetime: `[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]`,
     timestamp: `^[0-9]{10}$`,
+    urn: `^[a-zA-Z0-9._-]+$`,
     url: `^((http|https):\/\/)?(www\.)?([A-Za-zА-Яа-я0-9]{1}[A-Za-zА-Яа-я0-9\-]*\.?)*\.{1}[A-Za-zА-Яа-я0-9-]{2,8}(\/([\w#!:.?+=&%@!\-\/])*)?`,
     domain: `(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]`,
     uuid: `^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$`,
@@ -216,11 +217,11 @@ const f_value = function(value, schema) {
             let array = schema.enum;
 
             if (typeof schema.enum === `string`) {
-                array = patterns[schema.enum];
+                array = enums[schema.enum];
             };
     
             if (!array.includes(value)) {
-                error = `'${enums[schema.enum].join(` / `)}' required`;
+                error = `'${array.join(` / `)}' required`;
                 return false;
             };
 

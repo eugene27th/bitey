@@ -2,6 +2,10 @@ const config = require(`${process.cwd()}/config.json`);
 
 
 const parse = function(cookie) {
+    if (!cookie || cookie.length < 1) {
+        return null;
+    };
+
     const pairs = cookie.replaceAll(` `, ``).split(`;`);
 
     if (pairs.length < 1) {
