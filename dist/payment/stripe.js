@@ -18,8 +18,8 @@ const create = async function(currency, amount, title) {
     let price_request = await fetch(`https://api.stripe.com/v1/prices`, {
         method: `POST`,
         headers: {
-            [`Content-Type`]: `application/x-www-form-urlencoded`,
-            [`Authorization`]: `Basic ${Buffer.from(`${config.stripe.secret_key}:`).toString(`base64`)}`
+            [`content-type`]: `application/x-www-form-urlencoded`,
+            [`authorization`]: `Basic ${Buffer.from(`${config.stripe.secret_key}:`).toString(`base64`)}`
         },
         body: form_price.toString()
     });

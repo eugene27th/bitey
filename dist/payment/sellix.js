@@ -13,8 +13,8 @@ const create = async function(currency, amount, title, email) {
     let request = await fetch(`https://dev.sellix.io/v1/payments`, {
         method: `POST`,
         headers: {
-            [`Content-Type`]: `application/json`,
-            [`Authorization`]: `Bearer ${config.sellix.key}`
+            [`content-type`]: `application/json`,
+            [`authorization`]: `Bearer ${config.sellix.key}`
         },
         body: JSON.stringify({
             title: title,

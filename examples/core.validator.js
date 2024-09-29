@@ -1,43 +1,37 @@
-const bitey = require(`bitey`);
-
-
 /*
-    Возвращаемое значение функций: boolean. true - проверка пройдена, false - не пройдена.
-    Описание ошибки в `validator.error()`.
+    Возвращаемые значения: true - проверка пройдена, false - не пройдена.
+    Описание ошибки в `bitey.core.validator.error()`.
 
-    Схемы проверки:
-        Значение: {
-            type: `string`, // обязательно. требуемый тип значения. все доступные типы и их параметры указаны в `validator.types`
-            min: 1, // длина/значение
-            max: 32, // длина/значение
-            enums: [`salwador`, `aboba`] // массив разрешённых значений
-        }
+    Типы:
+        string - любая строка.
+        boolean - boolean, 'true' (string), 'false' (string).
+        int, int8, int16, int32 - целые числа.
+        uint, uint8, uint16, uint32 - целые числа больше нуля.
+        float - с плавающей запятой.
+        enum - одно из предложенных значений. можно указать как и свой массив с значениями, так и название заготовленного (смотреть файл /core/validator.js > enums).
+        pattern - проверка pattern. можно указать как свой regex паттерн, так и название заготовленного (смотреть файл /core/validator.js > patterns).
+        object - json объект.
+        array - массив.
 
-        Массив: {
-            min: 1,
-            max: 32,
-            duplicates: false, // повторение одинаковых элементов запрещено. по-умолчанию: true.
-            items: {
-                type: `string`, // значение, массив, объект
-                min: 1,
-                max: 32
-            }
-        }
+    Параметры:
+        общие:
+            required - значение требуется.
+            min - минимальное значение. в случае с числами - значение, строками - длина, массивами - кол-во элементов, объектами - кол-во ключей.
+            max - максимальное значение. в случае с числами - значение, строками - длина, массивами - кол-во элементов, объектами - кол-во ключей.
 
-        Объект: {
-            min: 1,
-            max: 2,
-            properties: {
-                key: {
-                    required: true, // требуется
-                    null: true, // разрешён null в качестве значения
+        enum:
+            enum - свой массив с значениями или название заготовленного.
 
-                    type: `string`, // значение, массив, объект
-                    min: 1,
-                    max: 32
-                }
-            }
-        }
+        pattern:
+            pattern - свой regex паттерн или название заготовленного.
+
+        array:
+            duplicates - повторение одинаковых элементов в массиве. true - разрешено, false - запрещено. по-умолчанию: true.
+            items - описание разрешённых значений в массиве (смотреть в примере).
+        
+        object:
+            null - разрешён null в качестве.
+            properties - объект, в котором указываются ключи проверяемого объекта (смотреть в примере).
 */
 
 
@@ -46,54 +40,51 @@ const bitey = require(`bitey`);
 */
 
 if (!bitey.core.validator.json({
-    username: `salwador`,
-    password: null,
-    something: `he-he`,
-    somearray: [
+    value_enum: `salwador`,
+    value_something: null,
+    value_pattern: `he-he`,
+    value_array: [
         1, 2, 3
     ],
-    someobject: {
+    value_object: {
         hehe: true,
         haha: false
     }
 }, {
-    min: 1,
+    min: 3,
     properties: {
-        username: {
+        value_enum: {
             required: true,
-            type: `pat_string_default`,
-            min: 1,
-            max: 128,
-            enums: [`salwador`, `eugene`]
+            type: `enum`,
+            enum: [`salwador`, `eugene`]
         },
-        password: {
+        value_something: {
             required: true,
-            null: true,
-            type: `pat_password`,
-            min: 1,
-            max: 128
-        },
-        something: {
             type: `string`,
             min: 1,
-            max: 64
+            max: 128,
+            null: true
         },
-        somearray: {
+        value_pattern: {
+            type: `pattern`,
+            pattern: `email`,
+            max: 128
+        },
+        value_array: {
             type: `array`,
             min: 1,
             max: 3,
             items: {
-                type: `integer`,
+                type: `int`,
                 min: 1,
                 max: 32
             }
         },
-        someobject: {
+        value_object: {
             type: `object`,
             min: 1,
             properties: {
                 hehe: {
-                    required: true,
                     type: `boolean`
                 },
                 haha: {

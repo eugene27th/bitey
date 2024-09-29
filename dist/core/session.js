@@ -55,15 +55,15 @@ const get = async function(res, req) {
     }, 5);
 };
 
-const create = async function(res, req, id) {
+const create = async function(res, req, data) {
     const cookie_value = `${utils.string(6)}.${utils.string(4)}.${utils.string(8)}.${utils.string(16)}`;
     const cookie_encrypted = `${cookie_value}.${crypto.createHmac(`sha256`, config.session.secret).update(cookie_value).digest(`base64`).replace(/\=+$/, ``)}`;
 
     res.setHeader(`Set-Cookie`, cookie.serialize(config.session.name, cookie_encrypted));
 
     const session = {
-        id: id,
-        ip: req.headers.ip
+        ip: req.headers.ip,
+        ...data
     };
 
     await redis.set(`session:${config.session.name}:${cookie_value}`, JSON.stringify(session), {

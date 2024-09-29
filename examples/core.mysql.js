@@ -1,6 +1,3 @@
-const bitey = require(`bitey`);
-
-
 /*
     Пользовательский запрос.
     В данном случае, мы получаем строку из `accounts` где username = salwador.

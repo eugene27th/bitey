@@ -13,9 +13,9 @@ const create = async function(currency, amount, name, description) {
     let request = await fetch(`https://api.commerce.coinbase.com/charges`, {
         method: `POST`,
         headers: {
-            "Content-Type": `application/json`,
-            "X-CC-Api-Key": config.coinbase.key,
-            "X-CC-Version": `2018-03-22`
+            [`content-type`]: `application/json`,
+            [`x-cc-api-key`]: config.coinbase.key,
+            [`x-cc-version`]: `2018-03-22`
         },
         body: JSON.stringify({
             name: name,

@@ -21,7 +21,7 @@ const create = async function(currency, amount) {
     let request = await fetch(`https://api.cryptomus.com/v1/payment`, {
         method: `POST`,
         headers: {
-            [`Content-Type`]: `application/json`,
+            [`content-type`]: `application/json`,
             [`merchant`]: config.cryptomus.merchant,
             [`sign`]: crypto.createHash(`md5`).update(Buffer.from(body).toString(`base64`) + config.cryptomus.key).digest(`hex`)
         },

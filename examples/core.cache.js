@@ -1,6 +1,3 @@
-const bitey = require(`bitey`);
-
-
 /*
     Получить из кэша значение по ключу `account:username=salwador`.
 */
