@@ -11,6 +11,7 @@
 
 await bitey.core.session.create(res, req, {
     id: account.id // id аккаунта. требуется для работы авторизации.
+    // всё остальное по вкусу
 });
 
 

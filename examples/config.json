@@ -74,14 +74,14 @@
         "id": "google_client_id",
         "secret": "google_secret_token",
         "webhook_url": "https://api.name.domain/webhook/google",
-        "redirect_url": "https://name.domain/callback/google"
+        "redirect_url": "https://name.domain/profile"
     },
 
     "discord": {
         "id": "discord_client_id",
         "secret": "discord_secret_token",
         "webhook_url": "https://api.name.domain/webhook/discord",
-        "redirect_url": "https://name.domain/callback/discord"
+        "redirect_url": "https://name.domain/profile"
     },
 
     "coinbase": {

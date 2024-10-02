@@ -22,7 +22,7 @@ const create = async function(currency, amount, name, description) {
             description: description,
             pricing_type: `fixed_price`,
             local_price: {
-                amount: amount,
+                amount: (amount / 100).toFixed(2),
                 currency: currency
             },
             redirect_url: config.coinbase.redirect_url,
@@ -44,7 +44,11 @@ const create = async function(currency, amount, name, description) {
 };
 
 const verify = async function(signature, data) {
-    if (data.event?.type !== `charge:confirmed` || signature != crypto.createHmac(`sha256`, config.coinbase.webhook_secret).update(JSON.stringify(data), `utf8`).digest(`hex`)) {
+    if (data.event?.type !== `charge:confirmed`) {
+        return false;
+    };
+
+    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(crypto.createHmac(`sha256`, config.coinbase.webhook_secret).update(JSON.stringify(data), `utf8`).digest(`hex`)))) {
         return false;
     };
 

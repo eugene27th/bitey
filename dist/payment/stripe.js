@@ -7,6 +7,7 @@ if (!config.stripe) {
 
 
 const crypto = require(`crypto`);
+const utils = require(`../core/utils`);
 
 
 const create = async function(currency, amount, title) {
@@ -56,10 +57,13 @@ const create = async function(currency, amount, title) {
         return false;
     };
     
-    return checkout_response;
+    return {
+        id: checkout_response.id,
+        url: checkout_response.url
+    };
 };
 
-const verify = async function(signature, raw) {
+const verify = async function(signature, raw, tolerance = 10) {
     let data = JSON.parse(Buffer.from(raw));
 
     if (data.type !== `checkout.session.completed`) {
@@ -70,9 +74,13 @@ const verify = async function(signature, raw) {
 
     let timestamp = signature[0].split(`=`)[1];
 
+    if ((parseInt(timestamp) - utils.timestamp()) < (tolerance * 60)) {
+        return false;
+    };
+
     signature = signature[1].split(`=`)[1];
 
-    if (signature !== crypto.createHmac(`sha256`, config.stripe.webhook_secret).update(`${timestamp}.${raw}`).digest(`hex`)) {
+    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(crypto.createHmac(`sha256`, config.stripe.webhook_secret).update(`${timestamp}.${raw}`).digest(`hex`)))) {
         return false;
     };
 

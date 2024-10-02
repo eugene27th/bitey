@@ -495,8 +495,11 @@ const http = function(method, url, options) {
             res.cork(function() {
                 if (status) {
                     res.writeStatus(`${status}`);
-                } else if (typeof data === `undefined` || data === true) {
+                } else if (data === true) {
                     res.writeStatus(`204`);
+                } else if (typeof data === `undefined`) {
+                    data = { error: `ER_NOT_FOUND` };
+                    res.writeStatus(`404`);
                 };
 
                 if (config.cors?.origin && config.cors.origin.includes(req.headers.origin)) {
@@ -511,7 +514,7 @@ const http = function(method, url, options) {
                     };
                 };
 
-                if (typeof data === `undefined` || data === true) {
+                if (data === true) {
                     return res.end();
                 };
 

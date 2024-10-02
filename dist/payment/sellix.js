@@ -18,7 +18,7 @@ const create = async function(currency, amount, title, email) {
         },
         body: JSON.stringify({
             title: title,
-            value: amount,
+            value: amount / 100,
             currency: currency,
             email: email,
             webhook: config.sellix.webhook_url,
@@ -36,7 +36,10 @@ const create = async function(currency, amount, title, email) {
         return false;
     };
 
-    return response.data;
+    return {
+        id: response.data.uniqid,
+        url: response.data.url
+    };
 };
 
 const verify = async function(signature, event, data) {

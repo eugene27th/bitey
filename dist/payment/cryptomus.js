@@ -13,7 +13,7 @@ const create = async function(currency, amount) {
     let body = JSON.stringify({
         order_id: crypto.randomUUID(),
         currency: currency,
-        amount: amount.toString(),
+        amount: (amount / 100).toFixed(2),
         url_return: config.cryptomus.redirect_url,
         url_callback: config.cryptomus.webhook_url
     });
@@ -38,14 +38,21 @@ const create = async function(currency, amount) {
         return false;
     };
     
-    return response.result;
+    return {
+        id: response.result.uuid,
+        url: response.result.url
+    };
 };
 
 const verify = async function(data) {
     const sign = data.sign;
     delete data.sign;
 
-    if ((data.status !== `paid` && data.status !== `paid_over`) || sign !== crypto.createHash(`md5`).update(Buffer.from(JSON.stringify(data)).toString(`base64`) + config.cryptomus.key).digest(`hex`)) {
+    if (data.status !== `paid` && data.status !== `paid_over`) {
+        return false;
+    };
+
+    if (!crypto.timingSafeEqual(Buffer.from(sign), Buffer.from(crypto.createHash(`md5`).update(Buffer.from(JSON.stringify(data)).toString(`base64`) + config.cryptomus.key).digest(`hex`)))) {
         return false;
     };
 
