@@ -29,10 +29,10 @@ const create = async function(currency, amount, title) {
         return false;
     };
 
-    let price_response = await price_request.json();
+    let price = await price_request.json();
 
     let form_checkout = new URLSearchParams();
-        form_checkout.append(`line_items[0][price]`, price_response.id);
+        form_checkout.append(`line_items[0][price]`, price.id);
         form_checkout.append(`line_items[0][quantity]`, 1);
         form_checkout.append(`mode`, `payment`);
         form_checkout.append(`success_url`, config.stripe.redirect_url);
@@ -51,15 +51,15 @@ const create = async function(currency, amount, title) {
         return false;
     };
 
-    let checkout_response = await checkout_request.json();
+    let checkout = await checkout_request.json();
 
-    if (!checkout_response.url) {
+    if (!checkout.url) {
         return false;
     };
     
     return {
-        id: checkout_response.id,
-        url: checkout_response.url
+        id: checkout.id,
+        url: checkout.url
     };
 };
 

@@ -21,7 +21,7 @@ const hash = async function(password, salt) {
 };
 
 const compare = async function(password, encrypted) {
-    return await hash(password, encrypted.slice(-16)) === encrypted;
+    return crypto.timingSafeEqual(Buffer.from(await hash(password, encrypted.slice(-16))), Buffer.from(encrypted));
 };
 
 

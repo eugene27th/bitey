@@ -17,7 +17,7 @@ const user = async function(code) {
     form.append(`code`, code);
     form.append(`redirect_uri`, config.discord.webhook_url);
 
-    let token_response = await fetch(`https://discord.com/api/oauth2/token`, {
+    let token_request = await fetch(`https://discord.com/api/oauth2/token`, {
         method: `POST`,
         headers: {
             [`Authorization`]: `Basic ${Buffer.from(`${config.discord.id}:${config.discord.secret}`).toString(`base64`)}`
@@ -25,24 +25,24 @@ const user = async function(code) {
         body: form
     });
 
-    if (token_response.status != 200) {
+    if (token_request.status !== 200) {
         return false;
     };
 
-    let token = await token_response.json();
+    let token = await token_request.json();
 
-    let user_response = await fetch(`https://discord.com/api/users/@me`, {
+    let user_request = await fetch(`https://discord.com/api/users/@me`, {
         method: `GET`,
         headers: {
             [`Authorization`]: `Bearer ${token.access_token}`
         }
     });
 
-    if (user_response.status != 200) {
+    if (user_request.status !== 200) {
         return false;
     };
 
-    let user = await user_response.json();
+    let user = await user_request.json();
 
     if (user.avatar) {
         user.avatar = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}`;

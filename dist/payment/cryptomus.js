@@ -45,8 +45,7 @@ const create = async function(currency, amount) {
 };
 
 const verify = async function(data) {
-    const sign = data.sign;
-    delete data.sign;
+    const { sign, ...data } = data;
 
     if (data.status !== `paid` && data.status !== `paid_over`) {
         return false;

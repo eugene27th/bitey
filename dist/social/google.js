@@ -19,29 +19,29 @@ const user = async function(code) {
     form.append(`grant_type`, `authorization_code`);
     form.append(`redirect_uri`, config.google.webhook_url);
 
-    let token_response = await fetch(`https://oauth2.googleapis.com/token`, {
+    let token_request = await fetch(`https://oauth2.googleapis.com/token`, {
         method: `POST`,
         body: form
     });
 
-    if (token_response.status != 200) {
+    if (token_request.status !== 200) {
         return false;
     };
 
-    let token = await token_response.json();
+    let token = await token_request.json();
 
-    let user_response = await fetch(`https://www.googleapis.com/userinfo/v2/me`, {
+    let user_request = await fetch(`https://www.googleapis.com/userinfo/v2/me`, {
         method: `GET`,
         headers: {
             [`Authorization`]: `Bearer ${token.access_token}`
         }
     });
 
-    if (user_response.status != 200) {
+    if (user_request.status !== 200) {
         return false;
     };
 
-    return await user_response.json();
+    return await user_request.json();
 };
 
 
