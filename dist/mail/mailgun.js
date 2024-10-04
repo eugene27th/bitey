@@ -8,9 +8,8 @@ if (!config.mailgun) {
 
 const send = async function(data) {
     let form = new FormData();
-
-    form.append(`from`, data.from);
-    form.append(`subject`, data.subject);
+        form.append(`from`, data.from);
+        form.append(`subject`, data.subject);
 
     for (const recipient of data.to) {
         form.append(`to`, recipient);
@@ -18,7 +17,7 @@ const send = async function(data) {
     
     data.text ? form.append(`text`, data.text) : form.append(`html`, data.html);
 
-    let response = await fetch(`${config.mailgun[data.domain].url}/messages`, {
+    const request = await fetch(`${config.mailgun[data.domain].url}/messages`, {
         method: `POST`,
         headers: {
             [`Authorization`]: `Basic ${Buffer.from(`api:${config.mailgun[data.domain].key}`).toString(`base64`)}`
@@ -26,17 +25,17 @@ const send = async function(data) {
         body: form
     });
 
-    if (response.status != 200) {
+    if (request.status !== 200) {
         return false;
     };
 
-    let result = await response.json();
+    const response = await request.json();
 
-    if (!result.id) {
+    if (!response.id) {
         return false;
     };
 
-    return result.id;
+    return response.id;
 };
 
 

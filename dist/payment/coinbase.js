@@ -10,7 +10,7 @@ const crypto = require(`crypto`);
 
 
 const create = async function(currency, amount, name, description) {
-    let request = await fetch(`https://api.commerce.coinbase.com/charges`, {
+    const request = await fetch(`https://api.commerce.coinbase.com/charges`, {
         method: `POST`,
         headers: {
             [`content-type`]: `application/json`,
@@ -34,7 +34,7 @@ const create = async function(currency, amount, name, description) {
         return false;
     };
 
-    let response = await request.json();
+    const response = await request.json();
 
     if (!response.data?.hosted_url) {
         return false;

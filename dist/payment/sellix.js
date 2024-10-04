@@ -10,7 +10,7 @@ const crypto = require(`crypto`);
 
 
 const create = async function(currency, amount, title, email) {
-    let request = await fetch(`https://dev.sellix.io/v1/payments`, {
+    const request = await fetch(`https://dev.sellix.io/v1/payments`, {
         method: `POST`,
         headers: {
             [`content-type`]: `application/json`,
@@ -30,7 +30,7 @@ const create = async function(currency, amount, title, email) {
         return false;
     };
 
-    let response = await request.json();
+    const response = await request.json();
 
     if (response.error || !response.data?.url) {
         return false;

@@ -16,9 +16,9 @@ const date = function(mode = `d.m.y`) {
         return date.toISOString().slice(0, 10);  
     };
 
-    let d = `${date.getUTCDate()}`.padStart(2, `0`);
-    let m = `${date.getUTCMonth() + 1}`.padStart(2, `0`);
-    let y = date.getUTCFullYear();
+    const d = `${date.getUTCDate()}`.padStart(2, `0`);
+    const m = `${date.getUTCMonth() + 1}`.padStart(2, `0`);
+    const y = date.getUTCFullYear();
 
     switch (mode) {
         case `d.m.y`: return `${d}.${m}.${y}`;
@@ -34,14 +34,14 @@ const time = function() {
 };
 
 const uuidts = function() {
-    let uuid = crypto.randomUUID();
-    let timestamp = `${timestamp()}`;
+    const uuid = crypto.randomUUID();
+    const timestamp = `${timestamp()}`;
 
     return `${uuid.slice(0,4)}${timestamp.slice(5)}${uuid.slice(4, 30)}${timestamp.slice(0,5)}${uuid.slice(-6)}`;
 };
 
 const string = function(length, tocase) {
-    let chars = `QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789`;
+    const chars = `QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789`;
 
     let result = ``;
 

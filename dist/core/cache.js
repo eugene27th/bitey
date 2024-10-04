@@ -4,7 +4,7 @@ let storage = {};
 
 const spath = function(key) {
     let folder = `default`;
-    let path = key.split(`:`);
+    const path = key.split(`:`);
 
     if (path.length < 2 || path[0].length < 1) {
         return {
@@ -58,7 +58,7 @@ const set = function(keys, value, ttl = dttl) {
 };
 
 const get = function(key) {
-    let path = spath(key);
+    const path = spath(key);
 
     if (!storage[path.folder]) {
         return null;
@@ -68,7 +68,7 @@ const get = function(key) {
         return storage[path.folder];
     };
 
-    let data = storage[path.folder][path.key];
+    const data = storage[path.folder][path.key];
 
     if (data === undefined) {
         return null;
@@ -88,7 +88,7 @@ const del = function(keys, deleq = false) {
     };
 
     for (const key of keys) {
-        let path = spath(key);
+        const path = spath(key);
 
         if (!storage[path.folder]) {
             continue;
@@ -100,10 +100,10 @@ const del = function(keys, deleq = false) {
         };
 
         if (deleq) {
-            let value = storage[path.folder][path.key];
+            const value = storage[path.folder][path.key];
 
-            for (let [folder, keys] of Object.entries(storage)) {
-                for (let [key, data] of Object.entries(keys)) {
+            for (const [folder, keys] of Object.entries(storage)) {
+                for (const [key, data] of Object.entries(keys)) {
                     if (JSON.stringify(value) === JSON.stringify(data)) {
                         delete storage[folder][key];
                     };

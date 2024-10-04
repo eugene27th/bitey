@@ -18,7 +18,7 @@ const create = async function(currency, amount) {
         url_callback: config.cryptomus.webhook_url
     });
     
-    let request = await fetch(`https://api.cryptomus.com/v1/payment`, {
+    const request = await fetch(`https://api.cryptomus.com/v1/payment`, {
         method: `POST`,
         headers: {
             [`content-type`]: `application/json`,
@@ -32,7 +32,7 @@ const create = async function(currency, amount) {
         return false;
     };
     
-    let response = await request.json();
+    const response = await request.json();
     
     if (!response.result?.url) {
         return false;

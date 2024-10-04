@@ -42,10 +42,10 @@ const parser = function(res, req, next) {
     req.body = {};
 
     if (req.options.schema.query) {
-        let query = req.getQuery();
+        const query = req.getQuery();
 
         if (query) {
-            let pairs = query.split(`&`);
+            const pairs = query.split(`&`);
 
             if (req.options.schema.query.max && pairs.length > req.options.schema.query.max) {
                 return res.send({
@@ -62,7 +62,7 @@ const parser = function(res, req, next) {
             };
 
             for (const pair of pairs) {
-                let [key, value] = pair.split(`=`);
+                const [key, value] = pair.split(`=`);
                 req.query[key] = value;
             };
     
@@ -93,7 +93,7 @@ const parser = function(res, req, next) {
 
     if (req.options.schema.params) {
         for (let i = 0; i < req.options.schema.params.length; i++) {
-            let param = req.getParameter(i);
+            const param = req.getParameter(i);
 
             if (!param) {
                 return res.send({
@@ -151,7 +151,7 @@ const parser = function(res, req, next) {
                     }, 400);
                 };
 
-                let length = Object.keys(req.body.json).length;
+                const length = Object.keys(req.body.json).length;
 
                 if (req.options.schema.body.json.max && length > req.options.schema.body.json.max) {
                     return res.send({
@@ -198,7 +198,7 @@ const parser = function(res, req, next) {
                     return next();
                 };
                 
-                let parts = uws.getParts(buffer, req.headers.content_type);
+                const parts = uws.getParts(buffer, req.headers.content_type);
 
                 if (req.options.schema.body.form.max && parts.length > req.options.schema.body.form.max) {
                     return res.send({
@@ -214,7 +214,7 @@ const parser = function(res, req, next) {
                     }, 400);
                 };
 
-                for (let [key, property] of Object.entries(req.options.schema.body.form.properties)) {
+                for (const [key, property] of Object.entries(req.options.schema.body.form.properties)) {
                     if (property.required && parts.findIndex(function(x) { return key === x.name }) < 0) {
                         return res.send({
                             error: `ER_INV_DATA`,
@@ -241,7 +241,7 @@ const parser = function(res, req, next) {
                             }, 400);
                         };
 
-                        let value = Buffer.from(part.data).toString();
+                        const value = Buffer.from(part.data).toString();
 
                         if (!validator.value(value, req.options.schema.body.form.properties[part.name])) {
                             return res.send({
@@ -288,7 +288,7 @@ const parser = function(res, req, next) {
                         }, 400);
                     };
 
-                    let mimetypes = {
+                    const mimetypes = {
                         [`image/png`]: `png`,
                         [`image/jpeg`]: `jpg`,
                         [`image/webp`]: `webp`,
@@ -441,26 +441,25 @@ const turnstile = async function(res, req, next) {
     };
 
     let form = new FormData();
+        form.append(`secret`, config.cloudflare.turnstile.secret_key);
+        form.append(`response`, req.headers.challenge);
+        form.append(`remoteip`, req.headers.ip);
 
-    form.append(`secret`, config.cloudflare.turnstile.secret_key);
-    form.append(`response`, req.headers.challenge);
-    form.append(`remoteip`, req.headers.ip);
-
-    const response = await fetch(`https://challenges.cloudflare.com/turnstile/v0/siteverify`, {
+    const request = await fetch(`https://challenges.cloudflare.com/turnstile/v0/siteverify`, {
         method: `POST`,
         body: form
     });
 
-    if (response.status != 200) {
+    if (request.status != 200) {
         return res.send({
             error: `ER_INV_DATA`,
             message: `'challenge' is invalid > challenge is failed`
         }, 400);
     };
 
-    const result = await response.json();
+    const response = await request.json();
 
-    if (!result.success) {
+    if (!response.success) {
         return res.send({
             error: `ER_INV_DATA`,
             message: `'challenge' is invalid > challenge is failed`
@@ -575,7 +574,7 @@ const http = function(method, url, options) {
         };
 
         if (req.options.limit) {
-            let cache_key = `http_limit:url=${req.url}-ip=${req.headers.ip}`;
+            const cache_key = `http_limit:url=${req.url}-ip=${req.headers.ip}`;
     
             let remaining = cache.get(cache_key);
         
@@ -594,9 +593,9 @@ const http = function(method, url, options) {
         };
 
         let cur_step = 0;
-        let max_steps = app.routes.http[method][url].methods.length;
+        const max_steps = app.routes.http[method][url].methods.length;
 
-        let next = function () {
+        const next = function () {
             if (res.aborted) {
                 return false;
             };
@@ -770,7 +769,7 @@ const ws = function(url) {
             };
 
             if (callback.options.limit) {
-                let cache_key = `ws_limit:url=${url}-action=${ws.message.action}-ip=${ws.headers.ip}`;
+                const cache_key = `ws_limit:url=${url}-action=${ws.message.action}-ip=${ws.headers.ip}`;
     
                 let remaining = cache.get(cache_key);
             
@@ -873,7 +872,7 @@ app.routes = {
 };
 
 app.options(`/*`, function(res, req) {
-    let origin = req.getHeader(`origin`);
+    const origin = req.getHeader(`origin`);
     let headers = `content-type, content-length, host, user-agent, accept, accept-encoding, connection, cache-control, cookie, session, cf-connecting-ip, cf-ipcountry`;
 
     res.writeHeader(`Vary`, `Origin`);

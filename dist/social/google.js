@@ -12,14 +12,13 @@ const url = function(state) {
 
 const user = async function(code) {
     let form = new FormData();
-    
-    form.append(`client_id`, config.google.id);
-    form.append(`client_secret`, config.google.secret);
-    form.append(`code`, code);
-    form.append(`grant_type`, `authorization_code`);
-    form.append(`redirect_uri`, config.google.webhook_url);
+        form.append(`client_id`, config.google.id);
+        form.append(`client_secret`, config.google.secret);
+        form.append(`code`, code);
+        form.append(`grant_type`, `authorization_code`);
+        form.append(`redirect_uri`, config.google.webhook_url);
 
-    let token_request = await fetch(`https://oauth2.googleapis.com/token`, {
+    const token_request = await fetch(`https://oauth2.googleapis.com/token`, {
         method: `POST`,
         body: form
     });
@@ -28,9 +27,9 @@ const user = async function(code) {
         return false;
     };
 
-    let token = await token_request.json();
+    const token = await token_request.json();
 
-    let user_request = await fetch(`https://www.googleapis.com/userinfo/v2/me`, {
+    const user_request = await fetch(`https://www.googleapis.com/userinfo/v2/me`, {
         method: `GET`,
         headers: {
             [`Authorization`]: `Bearer ${token.access_token}`

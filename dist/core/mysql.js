@@ -10,7 +10,7 @@ const connection = require(`mysql2/promise`).createPool(config.database.mysql);
 
 
 const exe = async function(query, values, params) {
-    let [result] = await connection.execute(query, values || []);
+    const [result] = await connection.execute(query, values || []);
 
     if (result.length < 1) {
         return params?.array ? [] : null;

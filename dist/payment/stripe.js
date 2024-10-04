@@ -16,7 +16,7 @@ const create = async function(currency, amount, title) {
         form_price.append(`unit_amount`, amount);
         form_price.append(`product_data[name]`, title);
 
-    let price_request = await fetch(`https://api.stripe.com/v1/prices`, {
+    const price_request = await fetch(`https://api.stripe.com/v1/prices`, {
         method: `POST`,
         headers: {
             [`content-type`]: `application/x-www-form-urlencoded`,
@@ -29,7 +29,7 @@ const create = async function(currency, amount, title) {
         return false;
     };
 
-    let price = await price_request.json();
+    const price = await price_request.json();
 
     let form_checkout = new URLSearchParams();
         form_checkout.append(`line_items[0][price]`, price.id);
@@ -38,7 +38,7 @@ const create = async function(currency, amount, title) {
         form_checkout.append(`success_url`, config.stripe.redirect_url);
         form_checkout.append(`cancel_url`, config.stripe.redirect_url);
 
-    let checkout_request = await fetch(`https://api.stripe.com/v1/checkout/sessions`, {
+    const checkout_request = await fetch(`https://api.stripe.com/v1/checkout/sessions`, {
         method: `POST`,
         headers: {
             [`Content-Type`]: `application/x-www-form-urlencoded`,
@@ -51,7 +51,7 @@ const create = async function(currency, amount, title) {
         return false;
     };
 
-    let checkout = await checkout_request.json();
+    const checkout = await checkout_request.json();
 
     if (!checkout.url) {
         return false;
@@ -64,15 +64,13 @@ const create = async function(currency, amount, title) {
 };
 
 const verify = async function(signature, raw, tolerance = 10) {
-    let data = JSON.parse(Buffer.from(raw));
-
-    if (data.type !== `checkout.session.completed`) {
+    if (JSON.parse(Buffer.from(raw)).type !== `checkout.session.completed`) {
         return false;
     };
 
     signature = signature.split(`,`);
 
-    let timestamp = signature[0].split(`=`)[1];
+    const timestamp = signature[0].split(`=`)[1];
 
     if ((parseInt(timestamp) - utils.timestamp()) < (tolerance * 60)) {
         return false;

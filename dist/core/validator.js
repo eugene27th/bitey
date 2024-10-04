@@ -57,6 +57,8 @@ const f_value = function(value, schema) {
                 error = `'string' required`;
                 return false;
             };
+
+            value = value.trim();
             
             if (schema.min !== undefined && value.length < schema.min) {
                 error = `'${schema.min} < length' required`;
@@ -234,6 +236,8 @@ const f_value = function(value, schema) {
             if (patterns[schema.pattern]) {
                 pattern = patterns[schema.pattern];
             };
+
+            value = value.trim();
     
             if (!(new RegExp(pattern)).test(value)) {
                 error = `pattern '${schema.pattern}' required`;
@@ -267,7 +271,7 @@ const f_array = function(array, schema) {
         return false;
     };
 
-    let length = array.length;
+    const length = array.length;
 
     if (schema.min !== undefined && length < schema.min) {
         error = `'${schema.min} < length' required`;
@@ -347,14 +351,14 @@ const f_json = function(json, schema) {
 		return false;
 	};
 
-	for (let [key, properties] of Object.entries(schema.properties)) {
+	for (const [key, properties] of Object.entries(schema.properties)) {
 		if (properties.required && json[key] !== 0 && !json[key]) {
 			error = `'${key}' is missing`;
 			return false;
 		};
 	};
 
-	for (let [key, value] of Object.entries(json)) {
+	for (const [key, value] of Object.entries(json)) {
 		if (!schema.properties[key]) {
 			error = `'${key}' is not required`;
 			return false;

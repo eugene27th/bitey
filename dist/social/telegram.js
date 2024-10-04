@@ -11,12 +11,12 @@ const utils = require(`../core/utils`);
 
 
 const valid = function(payload, tolerance = 2) {
-    let { hash, ...data } = payload;
+    const { hash, ...data } = payload;
 
-    let secret = createHash(`sha256`).update(config.telegram.token).digest();
-    let string = Object.keys(data).sort().filter(key => data[key]).map(key => (`${key}=${data[key]}`)).join(`\n`);
+    const secret = createHash(`sha256`).update(config.telegram.token).digest();
+    const string = Object.keys(data).sort().filter(key => data[key]).map(key => (`${key}=${data[key]}`)).join(`\n`);
 
-    let sign = createHmac(`sha256`, secret).update(string).digest(`hex`);
+    const sign = createHmac(`sha256`, secret).update(string).digest(`hex`);
 
     if (!crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(sign)) || (utils.timestamp() - data.auth_date) > (tolerance * 60)) {
         return false;
@@ -26,7 +26,7 @@ const valid = function(payload, tolerance = 2) {
 };
 
 const send = async function(bot_id, chat_id, text) {
-    let response = await fetch(`https://api.telegram.org/bot${bot_id}/sendMessage`, {
+    const request = await fetch(`https://api.telegram.org/bot${bot_id}/sendMessage`, {
         method: `POST`,
         headers: {
             [`Content-Type`]: `application/json`
@@ -38,13 +38,13 @@ const send = async function(bot_id, chat_id, text) {
         })
     });
 
-    if (response.status != 200) {
+    if (request.status != 200) {
         return false;
     };
 
-    let result = await response.json();
+    const response = await request.json();
 
-    if (!result.ok) {
+    if (!response.ok) {
         return false;
     };
 

@@ -3,7 +3,7 @@ const fs = require(`fs/promises`);
 
 
 const log = async function(log, in_console) {
-    let path = `logs/${utils.date(`m.y`)}`;
+    const path = `logs/${utils.date(`m.y`)}`;
 
     try {
         await fs.access(path);
