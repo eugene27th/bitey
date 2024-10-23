@@ -61,8 +61,7 @@ if (!bitey.core.validator.json({
         value_something: {
             required: true,
             type: `string`,
-            min: 1,
-            max: 128,
+            min: 1, max: 128,
             null: true
         },
         value_pattern: {
@@ -72,12 +71,10 @@ if (!bitey.core.validator.json({
         },
         value_array: {
             type: `array`,
-            min: 1,
-            max: 3,
+            min: 1, max: 3,
             items: {
                 type: `int`,
-                min: 1,
-                max: 32
+                min: 1, max: 32
             }
         },
         value_object: {
@@ -112,8 +109,7 @@ if (!bitey.core.validator.array([
         aboba: false
     }
 ], {
-    min: 1,
-    max: 2,
+    min: 1, max: 2,
     duplicates: false,
     items: {
         type: `object`,
@@ -121,8 +117,7 @@ if (!bitey.core.validator.array([
         properties: {
             name: {
                 type: `string`,
-                min: 1,
-                max: 32
+                min: 1, max: 32
             },
             aboba: {
                 type: `boolean`
@@ -140,8 +135,7 @@ if (!bitey.core.validator.array([
 
 if (!bitey.core.validator.value(`salwador-aboba`, {
     type: `string`,
-    min: 1,
-    max: 64
+    min: 1, max: 64
 })) {
     console.log(`value error -> `, bitey.core.validator.error());
 };

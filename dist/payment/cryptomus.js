@@ -44,8 +44,8 @@ const create = async function(currency, amount) {
     };
 };
 
-const verify = async function(data) {
-    const { sign, ...data } = data;
+const verify = async function(payload) {
+    const { sign, ...data } = payload;
 
     if (data.status !== `paid` && data.status !== `paid_over`) {
         return false;

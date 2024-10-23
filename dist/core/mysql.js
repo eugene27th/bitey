@@ -24,15 +24,21 @@ const exe = async function(query, values, params) {
 };
 
 const get = async function(table, conditions, params) {
-    let query = `SELECT * FROM ${table} WHERE `;
+    let query = `SELECT * FROM ${table}`;
     let values = [];
 
-    for (const [column, value] of Object.entries(conditions)) {
-        query += `\`${column}\` = ? AND `;
-        values.push(value);
+    if (conditions) {
+        query += ` WHERE `;
+
+        for (const [column, value] of Object.entries(conditions)) {
+            query += `\`${column}\` = ? AND `;
+            values.push(value);
+        };
+
+        query = query.slice(0, -5);
     };
 
-    return await exe(query.slice(0, -5), values, params);
+    return await exe(query, values, params);
 };
 
 const ins = async function(table, data, params) {

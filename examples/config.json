@@ -103,8 +103,8 @@
 
     "stripe": {
         "public_key": "public_key",
-        "secret_key": "webhook_secret",
-        "webhook_secret": "secret",
+        "secret_key": "secret_key",
+        "webhook_secret": "webhook_secret",
         "redirect_url": "https://domain.name/"
     }
 }
