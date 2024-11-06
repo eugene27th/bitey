@@ -7,7 +7,7 @@
     Параметры, которые вернутся на вебхук: state, code, scope, authuser, prompt, error, error_description.
 */
 
-let authurl = bitey.social.google.url(`STATE`);
+const authurl = bitey.social.google.url(`STATE`);
 
 
 /*
@@ -26,4 +26,4 @@ let authurl = bitey.social.google.url(`STATE`);
     }
 */
 
-let user = bitey.social.google.user(`code`);
+const user = bitey.social.google.user(`code`);

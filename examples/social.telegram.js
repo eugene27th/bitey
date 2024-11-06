@@ -5,7 +5,7 @@
     Возвращаемое значение: boolean. true - проверка пройдена, false - не пройдена.
 */
 
-let is_valid = bitey.social.telegram.valid({
+const is_valid = bitey.social.telegram.valid({
     id: 123343278487234,
     first_name: `Firtsname`,
     username: `username`,
@@ -22,4 +22,4 @@ let is_valid = bitey.social.telegram.valid({
     Возвращаемое значение: boolean. true - сообщение отправлено, false - не отправлено.
 */
 
-let status = bitey.social.telegram.send(`bot_id`, `chat_id`, `Привет!`);
+const status = bitey.social.telegram.send(`bot_id`, `chat_id`, `Привет!`);

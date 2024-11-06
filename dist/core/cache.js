@@ -1,5 +1,5 @@
-let dttl = 7200;
 let storage = {};
+const dttl = 7200;
 
 
 const spath = function(key) {

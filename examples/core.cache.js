@@ -2,14 +2,14 @@
     Получить из кэша значение по ключу `account:username=salwador`.
 */
 
-let getkey = bitey.core.cache.get(`account:username=salwador`);
+const getkey = bitey.core.cache.get(`account:username=salwador`);
 
 
 /*
     Получить из кэша значение по директории `account:`.
 */
 
-let getdir = bitey.core.cache.get(`account:`);
+const getdir = bitey.core.cache.get(`account:`);
 
 
 /*
@@ -19,7 +19,7 @@ let getdir = bitey.core.cache.get(`account:`);
     Префикс перед `:` означает директорию, к которой будет относиться ключ. Директория по-умолчанию: `default`.
 */
 
-let set = bitey.core.cache.set([`account:id=1`, `account:username=salwador`], {
+const set = bitey.core.cache.set([`account:id=1`, `account:username=salwador`], {
     username: `salwador`,
     password: `aboba`
 }, 300);
@@ -32,4 +32,4 @@ let set = bitey.core.cache.set([`account:id=1`, `account:username=salwador`], {
     Если во втором аргументе функции указано `true`, то будут удалены все ключи с таким же значением.
 */
 
-let del = bitey.core.cache.del([`accounts:`, `account:id=1`], true);
+const del = bitey.core.cache.del([`accounts:`, `account:id=1`], true);

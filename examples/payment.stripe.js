@@ -9,7 +9,7 @@
     }
 */
 
-let payment = bitey.payment.stripe.create(`USD`, 1000, `Top up your balance.`);
+const payment = bitey.payment.stripe.create(`USD`, 1000, `Top up your balance.`);
 
 /*
     Проверить подлинность запроса.
@@ -23,4 +23,4 @@ let payment = bitey.payment.stripe.create(`USD`, 1000, `Top up your balance.`);
     Возвращаемое значение: boolean. true - проверка пройдена, false - нет.
 */
 
-let is_valid = bitey.payment.stripe.verify(`signature`, `raw`, 15);
+const is_valid = bitey.payment.stripe.verify(`signature`, `raw`, 15);

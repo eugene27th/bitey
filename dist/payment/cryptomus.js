@@ -10,7 +10,7 @@ const crypto = require(`crypto`);
 
 
 const create = async function(currency, amount) {
-    let body = JSON.stringify({
+    const body = JSON.stringify({
         order_id: crypto.randomUUID(),
         currency: currency,
         amount: (amount / 100).toFixed(2),

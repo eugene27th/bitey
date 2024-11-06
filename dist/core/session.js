@@ -1,7 +1,7 @@
 const config = require(`${process.cwd()}/config.json`);
 
 
-if (!config.session) {
+if (!config.session || !config.database?.redis) {
     return module.exports = null;
 };
 
@@ -15,7 +15,7 @@ const cookie = require(`./cookie`);
 
 
 const get = async function(res, req) {
-    const cookies = cookie.parse(req.headers.cookie || req.headers.session);
+    const cookies = cookie.parse(req.headers.cookie || req.headers.session || req.headers.wsprotocol);
 
     if (!cookies || !cookies[config.session.name]) {
         return null;

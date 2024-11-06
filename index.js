@@ -14,7 +14,7 @@ const collector = function (res, cb, err) {
     let buffer;
 
     res.onData(function(ab, last) {
-        let chunk = Buffer.from(ab);
+        const chunk = Buffer.from(ab);
 
         if (last) {
             if (buffer) {
@@ -673,22 +673,25 @@ const ws = function(url) {
                 });
             };
 
-            let session = null;
+            req.headers = {
+                cookie: req.getHeader(`cookie`),
+                session: req.getHeader(`session`),
+                challenge: req.getHeader(`challenge`),
+                country: req.getHeader(`cf-ipcountry`) || `??`,
+                ip: req.getHeader(`cf-connecting-ip`) || `127.0.0.1`,
+                wskey: req.getHeader(`sec-websocket-key`),
+                wsprotocol: req.getHeader(`sec-websocket-protocol`),
+                wsextensions: req.getHeader(`sec-websocket-extensions`)
+            };
 
             if (config.session) {
-                session = await session.get(res, req);
+                req.session = await session.get(res, req);
 
-                if (session) {
-                    session.account = cache.get(`accounts:id=${session.id}`) || await mysql.exe(`SELECT * FROM accounts WHERE id = ?`, [session.id]);
+                if (req.session) {
+                    req.session.account = cache.get(`accounts:id=${req.session.id}`) || await mysql.exe(`SELECT * FROM accounts WHERE id = ?`, [req.session.id]);
             
-                    if (session.account) {
-                        cache.set([`accounts:id=${session.id}`], account);
-
-                        if (session.account.permission === 0) {
-                            return res.send({
-                                error: `ER_ACCOUNT_FROZEN`
-                            }, 403);
-                        };
+                    if (req.session.account) {
+                        cache.set([`accounts:id=${req.session.id}`], req.session.account);
                     } else {
                         await session.close(res, req);
             
@@ -706,19 +709,13 @@ const ws = function(url) {
             return res.cork(function() {
                 res.upgrade(
                     {
-                        session: session,
-                        headers: {
-                            cookie: req.getHeader(`cookie`),
-                            session: req.getHeader(`session`),
-                            challenge: req.getHeader(`challenge`),
-                            country: req.getHeader(`cf-ipcountry`) || `??`,
-                            ip: req.getHeader(`cf-connecting-ip`) || `127.0.0.1`
-                        }
+                        session: req.session,
+                        headers: req.headers
                     },
                     
-                    req.getHeader(`sec-websocket-key`),
-                    req.getHeader(`sec-websocket-protocol`),
-                    req.getHeader(`sec-websocket-extensions`),
+                    req.headers.wskey,
+                    req.headers.wsprotocol,
+                    req.headers.wsextensions,
     
                     context
                 );
@@ -734,14 +731,14 @@ const ws = function(url) {
                 data: message[2] || null
             };
 
-            if (!ws.message.ident || !validator.value(ws.message.ident, { type: `str_integer`, min: 0, max: 1e10 })) {
+            if (!ws.message.ident || !validator.value(ws.message.ident, { type: `uint`, min: 0, max: 1e10 })) {
                 return ws.send({
                     error: `ER_INV_DATA`,
                     message: `ident is invalid > ${validator.error()}`
                 }, 2);
             };
 
-            if (!ws.message.action || !validator.value(ws.message.action, { type: `pat_string_safe`, min: 1, max: 128 })) {
+            if (!ws.message.action || !validator.value(ws.message.action, { type: `string`, min: 1, max: 128 })) {
                 return ws.send({
                     error: `ER_INV_DATA`,
                     message: `action is invalid > ${validator.error()}`
@@ -804,7 +801,7 @@ const ws = function(url) {
 
                 if (ws.session.account.permission === 0) {
                     return ws.send({
-                        error: `ER_ACCOUNT_FROZEN`
+                        error: `ER_ACCOUNT_BANNED`
                     }, 2);
                 };
 

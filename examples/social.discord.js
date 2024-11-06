@@ -7,7 +7,7 @@
     Параметры, которые вернутся на вебхук: state, code, error, error_description.
 */
 
-let authurl = bitey.social.discord.url(`STATE`);
+const authurl = bitey.social.discord.url(`STATE`);
 
 
 /*
@@ -26,4 +26,4 @@ let authurl = bitey.social.discord.url(`STATE`);
     }
 */
 
-let user = bitey.social.discord.user(`code`);
+const user = bitey.social.discord.user(`code`);
