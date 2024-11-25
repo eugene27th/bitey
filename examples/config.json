@@ -50,13 +50,7 @@
         "turnstile": {
             "secret_key": "secret_key",
             "site_key": "site_key"
-        },
-        "blacklist": [
-            "127.0.0.1"
-        ],
-        "whitelist": [
-            "127.0.0.1"
-        ] 
+        }
     },
 
     "mailgun": {

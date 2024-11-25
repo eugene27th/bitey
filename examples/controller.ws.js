@@ -1,5 +1,5 @@
 module.exports = function (app) {
-    app.message(`/`, `helloWorld`,
+    app.action(`/`, `helloWorld`,
         {
             auth: {
                 required: 0
@@ -15,7 +15,7 @@ module.exports = function (app) {
         }
     );
 
-    app.message(`/`, `getMyAccount`,
+    app.action(`/`, `getMyAccount`,
         {
             auth: {
                 required: 0
@@ -42,7 +42,7 @@ module.exports = function (app) {
         }
     );
 
-    app.message(`/`, `getAccount`,
+    app.action(`/`, `getAccount`,
         {
             auth: {
                 required: 0
@@ -68,7 +68,7 @@ module.exports = function (app) {
         }
     );
 
-    app.message(`/`, `getAccounts`,
+    app.action(`/`, `getAccounts`,
         {
             auth: {
                 required: 0
@@ -113,7 +113,7 @@ module.exports = function (app) {
         }
     );
 
-    app.message(`/`, `subscribeNotifications`,
+    app.action(`/`, `subscribeNotifications`,
         {
             auth: {
                 required: 0
@@ -129,7 +129,7 @@ module.exports = function (app) {
         }
     );
 
-    app.message(`/`, `unsubscribeNotifications`,
+    app.action(`/`, `unsubscribeNotifications`,
         {
             auth: {
                 required: 0
