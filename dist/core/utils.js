@@ -35,9 +35,9 @@ const time = function() {
 
 const uuidts = function() {
     const uuid = crypto.randomUUID();
-    const timestamp = `${timestamp()}`;
+    const ts = `${timestamp()}`;
 
-    return `${uuid.slice(0,4)}${timestamp.slice(5)}${uuid.slice(4, 30)}${timestamp.slice(0,5)}${uuid.slice(-6)}`;
+    return `${uuid.slice(0,4)}${ts.slice(5)}${uuid.slice(4, 30)}${ts.slice(0,5)}${uuid.slice(-6)}`;
 };
 
 const string = function(length, tocase) {

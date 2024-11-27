@@ -148,6 +148,7 @@ for (const method of [`get`, `post`, `patch`, `del`]) {
                     ...options.log
                 },
                 turnstile: options.turnstile || false,
+                raw: options.raw || false,
                 limit: {
                     attempts: 15,
                     per: 10,
@@ -172,81 +173,6 @@ for (const method of [`get`, `post`, `patch`, `del`]) {
                 };
             
                 cache.set([cache_key], remaining === null ? req.options.limit.attempts - 1 : remaining, req.options.limit.per);
-            };
-
-            if (config.cloudflare && req.options.turnstile) {
-                if (!req.headers.challenge) {
-                    return res.send({
-                        error: `ER_INV_DATA`,
-                        message: `turnstile is invalid > header 'challenge' is missing`
-                    }, 400);
-                };
-
-                let form = new FormData();
-                    form.append(`secret`, config.cloudflare.turnstile.secret_key);
-                    form.append(`response`, req.headers.challenge);
-                    form.append(`remoteip`, req.headers.ip);
-
-                const request = await fetch(`https://challenges.cloudflare.com/turnstile/v0/siteverify`, {
-                    method: `POST`,
-                    body: form
-                });
-            
-                if (request.status != 200) {
-                    logger.log(`[HTTP TURNSTILE] [FAILED] [${req.method}] [${req.url}] [${req.headers.ip}] [${request.status}]`);
-
-                    return res.send({
-                        error: `ER_INV_DATA`,
-                        message: `turnstile is invalid > challenge is failed`
-                    }, 400);
-                };
-            
-                const response = await request.json();
-            
-                if (!response.success) {
-                    logger.log(`[HTTP TURNSTILE] [FAILED] [${req.method}] [${req.url}] [${req.headers.ip}] [${request[`error-codes`]}]`);
-
-                    return res.send({
-                        error: `ER_INV_DATA`,
-                        message: `turnstile is invalid > challenge is failed`
-                    }, 400);
-                };
-
-                logger.log(`[HTTP TURNSTILE] [SUCCESS] [${req.method}] [${req.url}] [${req.headers.ip}]`);
-            };
-
-            if (config.session && req.options.auth.required !== 0) {
-                req.session = await session.get(res, req);
-
-                if (req.session) {
-                    req.session.account = cache.get(`accounts:id=${req.session.id}`) || await mysql.exe(`SELECT * FROM accounts WHERE id = ?`, [req.session.id]);
-            
-                    if (req.session.account) {
-                        cache.set([`accounts:id=${req.session.id}`], req.session.account);
-                    } else {
-                        await session.close(res, req);
-            
-                        return res.send({
-                            error: `ER_SESSION_RELOAD_NEEDED`
-                        }, 400);
-                    };
-
-                    if (req.options.auth.required === 2) {
-                        return res.send({
-                            error: `ER_ALR_AUTH`
-                        }, 400);
-                    };
-
-                    if (req.options.auth.permissions.length > 0 && !req.options.auth.permissions.includes(req.session.account.permission)) {
-                        return res.send({
-                            error: `ER_ACS_DENIED`
-                        }, 403);
-                    };
-                } else if (req.options.auth.required === 1) {
-                    return res.send({
-                        error: `ER_NOT_AUTH`
-                    }, 401);
-                };
             };
 
             if (req.options.schema?.params) {
@@ -274,11 +200,11 @@ for (const method of [`get`, `post`, `patch`, `del`]) {
             };
 
             if (req.options.schema?.query) {
+                req.query = {};
+
                 const string = req.getQuery();
 
                 if (string) {
-                    req.query = {};
-
                     const pairs = string.split(`&`);
     
                     if (req.options.schema.query.max && pairs.length > req.options.schema.query.max) {
@@ -325,255 +251,333 @@ for (const method of [`get`, `post`, `patch`, `del`]) {
                 };
             };
 
-            const finish = function() {
-                if (req.options.schema && req.options.log.payload) {
-                    logger.log(`[HTTP] [${req.method}] [${req.url}] [${req.headers.ip}] [${req.session?.account.id || `NULL`}] [${JSON.stringify({
-                        params: req.params, query: req.query, body: req.body
-                    })}]`);
+            let buffer;
+
+            res.onData(async function(ab, last) {
+                let chunk = Buffer.from(ab);
+
+                if (buffer) {
+                    buffer = Buffer.concat([buffer, chunk]);
                 } else {
-                    logger.log(`[HTTP] [${req.method}] [${req.url}] [${req.headers.ip}] [${req.session?.account.id || `NULL`}]`);
-                };
-
-                if (res.aborted) {
-                    return false;
-                };
-
-                res.cork(async function() {
-                    try {
-                        return await callback(res, req);
-                    } catch (err) {
-                        console.log(`err from http callback -> `, err);
-
-                        return res.send({
-                            error: err.code || `ER_UNEXPECTED`,
-                            ...err.extra
-                        }, err.status || 500);
-                    };
-                });
-            };
-
-            if (!req.options.schema?.body) {
-                return finish();
-            };
-
-            req.raw = ``;
-            req.body = {};
-
-            res.onData(function(ab, last) {
-                const chunk = Buffer.from(ab);
-
-                if (req.raw) {
-                    req.raw = Buffer.concat([req.raw, chunk]);
-                } else {
-                    req.raw = Buffer.concat([chunk]);
+                    buffer = Buffer.concat([chunk]);
                 };
 
                 if (last) {
-                    if (req.options.schema.body.json) {
-                        if ((req.headers.content_type === `application/json` || req.headers.content_type === `application/json; charset=utf-8`) && req.raw.length > 0) {
-                            try {
-                                req.body.json = JSON.parse(req.raw);
-                            } catch (err) {
-                                return res.send({
-                                    error: `ER_INV_DATA`,
-                                    message: `body raw is invalid`
-                                }, 400);
-                            };
-            
-                            const length = Object.keys(req.body.json).length;
-            
-                            if (req.options.schema.body.json.max && length > req.options.schema.body.json.max) {
-                                return res.send({
-                                    error: `ER_INV_DATA`,
-                                    message: `body raw is invalid > 'length < ${req.options.schema.query.max}' required`
-                                }, 400);
-                            };
+                    if (buffer.length > 0) {
+                        req.raw = buffer;
+                    };
+
+                    if (req.options.schema?.body) {
+                        req.body = {};
+
+                        if (req.options.schema.body.json) {
+                            if ((req.headers.content_type === `application/json` || req.headers.content_type === `application/json; charset=utf-8`) && req.raw) {
+                                try {
+                                    req.body.json = JSON.parse(req.raw);
+                                } catch (err) {
+                                    return res.send({
+                                        error: `ER_INV_DATA`,
+                                        message: `body raw is invalid`
+                                    }, 400);
+                                };
                 
-                            if (req.options.schema.body.json.min && length < req.options.schema.body.json.min) {
-                                return res.send({
-                                    error: `ER_INV_DATA`,
-                                    message: `body raw is invalid > '${req.options.schema.query.min} < length' required`
-                                }, 400);
-                            };
-            
-                            if (!validator.json(req.body.json, req.options.schema.body.json)) {
-                                return res.send({
-                                    error: `ER_INV_DATA`,
-                                    message: `body raw is invalid > ${validator.error()}`
-                                }, 400);
-                            };
-                        } else {
-                            if (req.options.schema.body.json.min) {
-                                return res.send({
-                                    error: `ER_INV_DATA`,
-                                    message: `body raw is missing`
-                                }, 400);
-                            };
-        
-                            for (const property of Object.values(req.options.schema.body.json.properties)) {
-                                if (property.required) {
+                                const length = Object.keys(req.body.json).length;
+                
+                                if (req.options.schema.body.json.max && length > req.options.schema.body.json.max) {
+                                    return res.send({
+                                        error: `ER_INV_DATA`,
+                                        message: `body raw is invalid > 'length < ${req.options.schema.query.max}' required`
+                                    }, 400);
+                                };
+                    
+                                if (req.options.schema.body.json.min && length < req.options.schema.body.json.min) {
+                                    return res.send({
+                                        error: `ER_INV_DATA`,
+                                        message: `body raw is invalid > '${req.options.schema.query.min} < length' required`
+                                    }, 400);
+                                };
+                
+                                if (!validator.json(req.body.json, req.options.schema.body.json)) {
+                                    return res.send({
+                                        error: `ER_INV_DATA`,
+                                        message: `body raw is invalid > ${validator.error()}`
+                                    }, 400);
+                                };
+                            } else {
+                                if (req.options.schema.body.json.min) {
                                     return res.send({
                                         error: `ER_INV_DATA`,
                                         message: `body raw is missing`
                                     }, 400);
                                 };
-                            };
-                        };
-                    } else if (req.options.schema.body.form) {
-                        if (req.headers.content_type.search(`multipart/form-data`) > -1 && req.raw.length > 0) {
-                            const parts = uws.getParts(req.raw, req.headers.content_type);
-        
-                            if (req.options.schema.body.form.max && parts.length > req.options.schema.body.form.max) {
-                                return res.send({
-                                    error: `ER_INV_DATA`,
-                                    message: `multipart is invalid > 'length < ${req.options.schema.query.max}' required`
-                                }, 400);
-                            };
-                
-                            if (req.options.schema.body.form.min && parts.length < req.options.schema.body.form.min) {
-                                return res.send({
-                                    error: `ER_INV_DATA`,
-                                    message: `multipart is invalid > '${req.options.schema.query.min} < length' required`
-                                }, 400);
-                            };
             
-                            for (const [key, property] of Object.entries(req.options.schema.body.form.properties)) {
-                                if (property.required && parts.findIndex(function(x) { return key === x.name }) < 0) {
-                                    return res.send({
-                                        error: `ER_INV_DATA`,
-                                        message: `multipart is invalid > '${key}' is missing`
-                                    }, 400);
+                                for (const property of Object.values(req.options.schema.body.json.properties)) {
+                                    if (property.required) {
+                                        return res.send({
+                                            error: `ER_INV_DATA`,
+                                            message: `body raw is missing`
+                                        }, 400);
+                                    };
                                 };
                             };
+                        } else if (req.options.schema.body.form) {
+                            if (req.headers.content_type.search(`multipart/form-data`) > -1 && req.raw) {
+                                const parts = uws.getParts(req.raw, req.headers.content_type);
             
-                            req.body.form = {};
-            
-                            for (const part of parts) {
-                                if (!req.options.schema.body.form.properties[part.name]) {
+                                if (req.options.schema.body.form.max && parts.length > req.options.schema.body.form.max) {
                                     return res.send({
                                         error: `ER_INV_DATA`,
-                                        message: `multipart is invalid > '${part.name}' is not required`
+                                        message: `multipart is invalid > 'length < ${req.options.schema.query.max}' required`
                                     }, 400);
                                 };
-
-                                if (typeof part.filename === `undefined`) {
-                                    if (req.options.schema.body.form.properties[part.name].type === `file`) {
+                    
+                                if (req.options.schema.body.form.min && parts.length < req.options.schema.body.form.min) {
+                                    return res.send({
+                                        error: `ER_INV_DATA`,
+                                        message: `multipart is invalid > '${req.options.schema.query.min} < length' required`
+                                    }, 400);
+                                };
+                
+                                for (const [key, property] of Object.entries(req.options.schema.body.form.properties)) {
+                                    if (property.required && parts.findIndex(function(x) { return key === x.name }) < 0) {
                                         return res.send({
                                             error: `ER_INV_DATA`,
-                                            message: `multipart is invalid > '${part.name}' is invalid > file required`
+                                            message: `multipart is invalid > '${key}' is missing`
                                         }, 400);
                                     };
-            
-                                    const value = req.raw.from(part.data).toString();
-            
-                                    if (!validator.value(value, req.options.schema.body.form.properties[part.name])) {
+                                };
+                
+                                req.body.form = {};
+                
+                                for (const part of parts) {
+                                    if (!req.options.schema.body.form.properties[part.name]) {
                                         return res.send({
                                             error: `ER_INV_DATA`,
-                                            message: validator.error()
+                                            message: `multipart is invalid > '${part.name}' is not required`
                                         }, 400);
                                     };
-            
-                                    if (req.body.form[part.name]) {
-                                        return res.send({
-                                            error: `ER_INV_DATA`,
-                                            message: `multipart is invalid > '${part.name}' is invalid > duplicated`
-                                        }, 400);
-                                    };
-            
-                                    req.body.form[part.name] = value;
-                                } else {
-                                    if (req.options.schema.body.form.properties[part.name].type !== `file`) {
-                                        return res.send({
-                                            error: `ER_INV_DATA`,
-                                            message: `multipart is invalid > '${part.name}' is invalid > not a file required`
-                                        }, 400);
-                                    };
-
-                                    if (part.filename.length < 1) {
-                                        return res.send({
-                                            error: `ER_INV_DATA`,
-                                            message: `multipart is invalid > '${part.name}' is invalid > file is invalid`
-                                        }, 400);
-                                    };
-                
-                                    if (part.data.byteLength > req.options.schema.body.form.properties[part.name].size) {
-                                        return res.send({
-                                            error: `ER_INV_DATA`,
-                                            message: `multipart is invalid > '${part.name}' is invalid > 'file size < ${req.options.schema.body.form.properties[part.name].size} b' required`
-                                        }, 400);
-                                    };
-                
-                                    if (!req.options.schema.body.form.properties[part.name].mimetypes.includes(part.type)) {
-                                        return res.send({
-                                            error: `ER_INV_DATA`,
-                                            message: `multipart is invalid > '${part.name}' is invalid > '${req.options.schema.body.form.properties[part.name].mimetypes.join(` / `)}' mimetype required`
-                                        }, 400);
-                                    };
-                
-                                    const mimetypes = {
-                                        [`image/png`]: `png`,
-                                        [`image/jpeg`]: `jpg`,
-                                        [`image/webp`]: `webp`,
-                                        [`image/gif`]: `gif`,
-                                        [`image/svg+xml`]: `svg`,
-                                        [`application/zip`]: `zip`,
-                                        [`application/zip-compressed`]: `zip`,
-                                        [`application/x-zip-compressed`]: `zip`,
-                                        [`video/mp4`]: `mp4`
-                                    };
-                
-                                    let file = {
-                                        name: part.filename,
-                                        mimetype: part.type,
-                                        ext: mimetypes[part.type],
-                                        size: part.data.byteLength,
-                                        buffer: Buffer.from(part.data)
-                                    };
-                
-                                    if (req.options.schema.body.form.properties[part.name].hash) {
-                                        file.hash = crypto.createHash(`md5`).update(file.buffer).digest(`hex`);
-                                    };
-                
-                                    if (req.body.form[part.name]) {
-                                        if (Array.isArray(req.body.form[part.name])) {
-                                            if (req.body.form[part.name].length >= req.options.schema.body.form.properties[part.name].max) {
-                                                return res.send({
-                                                    error: `ER_INV_DATA`,
-                                                    message: `multipart is invalid > '${part.name}' is invalid > 'length < ${req.options.schema.body.form.properties[part.name].max}' required`
-                                                }, 400);
-                                            };
-                
-                                            req.body.form[part.name].push(file)
-                                        } else {
-                                            req.body.form[part.name] = [req.body.form[part.name], file];
+    
+                                    if (typeof part.filename === `undefined`) {
+                                        if (req.options.schema.body.form.properties[part.name].type === `file`) {
+                                            return res.send({
+                                                error: `ER_INV_DATA`,
+                                                message: `multipart is invalid > '${part.name}' is invalid > file required`
+                                            }, 400);
                                         };
                 
-                                        continue;
-                                    };
+                                        const value = req.raw.from(part.data).toString();
                 
-                                    req.body.form[part.name] = file;
+                                        if (!validator.value(value, req.options.schema.body.form.properties[part.name])) {
+                                            return res.send({
+                                                error: `ER_INV_DATA`,
+                                                message: validator.error()
+                                            }, 400);
+                                        };
+                
+                                        if (req.body.form[part.name]) {
+                                            return res.send({
+                                                error: `ER_INV_DATA`,
+                                                message: `multipart is invalid > '${part.name}' is invalid > duplicated`
+                                            }, 400);
+                                        };
+                
+                                        req.body.form[part.name] = value;
+                                    } else {
+                                        if (req.options.schema.body.form.properties[part.name].type !== `file`) {
+                                            return res.send({
+                                                error: `ER_INV_DATA`,
+                                                message: `multipart is invalid > '${part.name}' is invalid > not a file required`
+                                            }, 400);
+                                        };
+    
+                                        if (part.filename.length < 1) {
+                                            return res.send({
+                                                error: `ER_INV_DATA`,
+                                                message: `multipart is invalid > '${part.name}' is invalid > file is invalid`
+                                            }, 400);
+                                        };
+                    
+                                        if (part.data.byteLength > req.options.schema.body.form.properties[part.name].size) {
+                                            return res.send({
+                                                error: `ER_INV_DATA`,
+                                                message: `multipart is invalid > '${part.name}' is invalid > 'file size < ${req.options.schema.body.form.properties[part.name].size} b' required`
+                                            }, 400);
+                                        };
+                    
+                                        if (!req.options.schema.body.form.properties[part.name].mimetypes.includes(part.type)) {
+                                            return res.send({
+                                                error: `ER_INV_DATA`,
+                                                message: `multipart is invalid > '${part.name}' is invalid > '${req.options.schema.body.form.properties[part.name].mimetypes.join(` / `)}' mimetype required`
+                                            }, 400);
+                                        };
+                    
+                                        const mimetypes = {
+                                            [`image/png`]: `png`,
+                                            [`image/jpeg`]: `jpg`,
+                                            [`image/webp`]: `webp`,
+                                            [`image/gif`]: `gif`,
+                                            [`image/svg+xml`]: `svg`,
+                                            [`application/zip`]: `zip`,
+                                            [`application/zip-compressed`]: `zip`,
+                                            [`application/x-zip-compressed`]: `zip`,
+                                            [`video/mp4`]: `mp4`
+                                        };
+                    
+                                        let file = {
+                                            name: part.filename,
+                                            mimetype: part.type,
+                                            ext: mimetypes[part.type],
+                                            size: part.data.byteLength,
+                                            buffer: Buffer.from(part.data)
+                                        };
+                    
+                                        if (req.options.schema.body.form.properties[part.name].hash) {
+                                            file.hash = crypto.createHash(`md5`).update(file.buffer).digest(`hex`);
+                                        };
+                    
+                                        if (req.body.form[part.name]) {
+                                            if (Array.isArray(req.body.form[part.name])) {
+                                                if (req.body.form[part.name].length >= req.options.schema.body.form.properties[part.name].max) {
+                                                    return res.send({
+                                                        error: `ER_INV_DATA`,
+                                                        message: `multipart is invalid > '${part.name}' is invalid > 'length < ${req.options.schema.body.form.properties[part.name].max}' required`
+                                                    }, 400);
+                                                };
+                    
+                                                req.body.form[part.name].push(file)
+                                            } else {
+                                                req.body.form[part.name] = [req.body.form[part.name], file];
+                                            };
+                    
+                                            continue;
+                                        };
+                    
+                                        req.body.form[part.name] = file;
+                                    };
                                 };
-                            };
-                        } else {
-                            if (req.options.schema.body.form.min) {
-                                return res.send({
-                                    error: `ER_INV_DATA`,
-                                    message: `multipart is missing`
-                                }, 400);
-                            };
-                            
-                            for (const property of Object.values(req.options.schema.body.form.properties)) {
-                                if (property.required) {
+
+                                console.log(req.body.form)
+                            } else {
+                                if (req.options.schema.body.form.min) {
                                     return res.send({
                                         error: `ER_INV_DATA`,
                                         message: `multipart is missing`
                                     }, 400);
                                 };
+                                
+                                for (const property of Object.values(req.options.schema.body.form.properties)) {
+                                    if (property.required) {
+                                        return res.send({
+                                            error: `ER_INV_DATA`,
+                                            message: `multipart is missing`
+                                        }, 400);
+                                    };
+                                };
                             };
                         };
                     };
 
-                    return finish();
+                    if (!req.options.raw && req.raw) {
+                        delete req.raw;
+                    };
+
+                    if (config.cloudflare && req.options.turnstile) {
+                        if (!req.headers.challenge) {
+                            return res.send({
+                                error: `ER_INV_DATA`,
+                                message: `turnstile is invalid > header 'challenge' is missing`
+                            }, 400);
+                        };
+        
+                        let form = new FormData();
+                            form.append(`secret`, config.cloudflare.turnstile.secret_key);
+                            form.append(`response`, req.headers.challenge);
+                            form.append(`remoteip`, req.headers.ip);
+        
+                        const request = await fetch(`https://challenges.cloudflare.com/turnstile/v0/siteverify`, {
+                            method: `POST`,
+                            body: form
+                        });
+                    
+                        if (request.status != 200) {
+                            logger.log(`[HTTP TURNSTILE] [FAILED] [${req.method}] [${req.url}] [${req.headers.ip}] [${request.status}]`);
+        
+                            return res.send({
+                                error: `ER_INV_DATA`,
+                                message: `turnstile is invalid > challenge is failed`
+                            }, 400);
+                        };
+                    
+                        const response = await request.json();
+                    
+                        if (!response.success) {
+                            logger.log(`[HTTP TURNSTILE] [FAILED] [${req.method}] [${req.url}] [${req.headers.ip}] [${request[`error-codes`]}]`);
+        
+                            return res.send({
+                                error: `ER_INV_DATA`,
+                                message: `turnstile is invalid > challenge is failed`
+                            }, 400);
+                        };
+        
+                        logger.log(`[HTTP TURNSTILE] [SUCCESS] [${req.method}] [${req.url}] [${req.headers.ip}]`);
+                    };
+        
+                    if (config.session && req.options.auth.required !== 0) {
+                        req.session = await session.get(res, req);
+        
+                        if (req.session) {
+                            req.session.account = cache.get(`accounts:id=${req.session.id}`) || await mysql.exe(`SELECT * FROM accounts WHERE id = ?`, [req.session.id]);
+                    
+                            if (req.session.account) {
+                                cache.set([`accounts:id=${req.session.id}`], req.session.account);
+                            } else {
+                                await session.close(res, req);
+                    
+                                return res.send({
+                                    error: `ER_SESSION_RELOAD_NEEDED`
+                                }, 400);
+                            };
+        
+                            if (req.options.auth.required === 2) {
+                                return res.send({
+                                    error: `ER_ALR_AUTH`
+                                }, 400);
+                            };
+        
+                            if (req.options.auth.permissions.length > 0 && !req.options.auth.permissions.includes(req.session.account.permission)) {
+                                return res.send({
+                                    error: `ER_ACS_DENIED`
+                                }, 403);
+                            };
+                        } else if (req.options.auth.required === 1) {
+                            return res.send({
+                                error: `ER_NOT_AUTH`
+                            }, 401);
+                        };
+                    };
+    
+                    if (req.options.schema && req.options.log.payload) {
+                        logger.log(`[HTTP] [${req.method}] [${req.url}] [${req.headers.ip}] [${req.session?.account.id || `NULL`}] [${JSON.stringify({ params: req.params, query: req.query, body: req.body })}]`);
+                    } else {
+                        logger.log(`[HTTP] [${req.method}] [${req.url}] [${req.headers.ip}] [${req.session?.account.id || `NULL`}]`);
+                    };
+    
+                    if (res.aborted) {
+                        return false;
+                    };
+    
+                    res.cork(async function() {
+                        try {
+                            return await callback(res, req);
+                        } catch (err) {
+                            console.log(`err from http callback -> `, err);
+    
+                            return res.send({
+                                error: err.code || `ER_UNEXPECTED`,
+                                ...err.extra
+                            }, err.status || 500);
+                        };
+                    });
                 };
             });
         });

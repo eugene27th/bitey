@@ -68,4 +68,31 @@ module.exports = function (app) {
             res.send(req.query);
         }
     );
+
+    app.post(`/hello/getmyfile`,
+        {
+            auth: {
+                required: 0
+            },
+            schema: {
+                body: {
+                    form: {
+                        properties: {
+                            files: {
+                                required: true,
+                                type: `file`,
+                                max: 16,
+                                mimetypes: [`image/png`, `image/jpeg`, `image/webp`, `image/gif`, `image/svg+xml`, `video/mp4`],
+                                size: 100 * 1e6,
+                                hash: true
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        async function(res, req) {
+            res.send(req.body.form);
+        }
+    );
 };
