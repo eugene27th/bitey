@@ -265,7 +265,7 @@ const f_value = function(value, schema) {
 };
 
 const f_array = function(array, schema) {
-    if (typeof array !== `object` && !Array.isArray(array)) {
+    if (typeof array !== `object` || !Array.isArray(array)) {
         error = `array is invalid`;
         return false;
     };

@@ -26,4 +26,4 @@ const authurl = bitey.social.google.url(`STATE`);
     }
 */
 
-const user = bitey.social.google.user(`code`);
+const user = await bitey.social.google.user(`code`);

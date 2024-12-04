@@ -9,7 +9,7 @@
     }
 */
 
-const payment = bitey.payment.cryptomus.create(`USD`, 1000);
+const payment = await bitey.payment.cryptomus.create(`USD`, 1000);
 
 /*
     Проверить подлинность запроса.

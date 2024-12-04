@@ -60,6 +60,13 @@
         }
     },
 
+    "sendgrid": {
+        "name.domain": {
+            "url": "https://api.sendgrid.com",
+            "key": "api_key"
+        }
+    },
+
     "telegram": {
         "token": "bot_token"
     },

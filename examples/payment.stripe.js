@@ -9,7 +9,7 @@
     }
 */
 
-const payment = bitey.payment.stripe.create(`USD`, 1000, `Top up your balance.`);
+const payment = await bitey.payment.stripe.create(`USD`, 1000, `Top up your balance.`);
 
 /*
     Проверить подлинность запроса.

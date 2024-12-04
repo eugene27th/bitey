@@ -63,7 +63,7 @@ const create = async function(currency, amount, title) {
     };
 };
 
-const verify = async function(signature, raw, tolerance = 10) {
+const verify = function(signature, raw, tolerance = 10) {
     if (JSON.parse(Buffer.from(raw)).type !== `checkout.session.completed`) {
         return false;
     };

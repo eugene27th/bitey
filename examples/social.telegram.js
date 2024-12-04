@@ -22,4 +22,4 @@ const is_valid = bitey.social.telegram.valid({
     Возвращаемое значение: boolean. true - сообщение отправлено, false - не отправлено.
 */
 
-const status = bitey.social.telegram.send(`bot_id`, `chat_id`, `Привет!`);
+const status = await bitey.social.telegram.send(`bot_id`, `chat_id`, `Привет!`);

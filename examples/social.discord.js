@@ -26,4 +26,4 @@ const authurl = bitey.social.discord.url(`STATE`);
     }
 */
 
-const user = bitey.social.discord.user(`code`);
+const user = await bitey.social.discord.user(`code`);

@@ -286,14 +286,14 @@ for (const method of [`get`, `post`, `patch`, `del`]) {
                                 if (req.options.schema.body.json.max && length > req.options.schema.body.json.max) {
                                     return res.send({
                                         error: `ER_INV_DATA`,
-                                        message: `body raw is invalid > 'length < ${req.options.schema.query.max}' required`
+                                        message: `body raw is invalid > 'length < ${req.options.schema.body.json.max}' required`
                                     }, 400);
                                 };
                     
                                 if (req.options.schema.body.json.min && length < req.options.schema.body.json.min) {
                                     return res.send({
                                         error: `ER_INV_DATA`,
-                                        message: `body raw is invalid > '${req.options.schema.query.min} < length' required`
+                                        message: `body raw is invalid > '${req.options.schema.body.json.min} < length' required`
                                     }, 400);
                                 };
                 
@@ -327,14 +327,14 @@ for (const method of [`get`, `post`, `patch`, `del`]) {
                                 if (req.options.schema.body.form.max && parts.length > req.options.schema.body.form.max) {
                                     return res.send({
                                         error: `ER_INV_DATA`,
-                                        message: `multipart is invalid > 'length < ${req.options.schema.query.max}' required`
+                                        message: `multipart is invalid > 'length < ${req.options.schema.body.form.max}' required`
                                     }, 400);
                                 };
                     
                                 if (req.options.schema.body.form.min && parts.length < req.options.schema.body.form.min) {
                                     return res.send({
                                         error: `ER_INV_DATA`,
-                                        message: `multipart is invalid > '${req.options.schema.query.min} < length' required`
+                                        message: `multipart is invalid > '${req.options.schema.body.form.min} < length' required`
                                     }, 400);
                                 };
                 
@@ -455,8 +455,6 @@ for (const method of [`get`, `post`, `patch`, `del`]) {
                                         req.body.form[part.name] = file;
                                     };
                                 };
-
-                                console.log(req.body.form)
                             } else {
                                 if (req.options.schema.body.form.min) {
                                     return res.send({
@@ -556,6 +554,7 @@ for (const method of [`get`, `post`, `patch`, `del`]) {
                         };
                     };
     
+                    // todo: банворды в опциях метода
                     if (req.options.schema && req.options.log.payload) {
                         logger.log(`[HTTP] [${req.method}] [${req.url}] [${req.headers.ip}] [${req.session?.account.id || `NULL`}] [${JSON.stringify({ params: req.params, query: req.query, body: req.body })}]`);
                     } else {
@@ -875,7 +874,8 @@ module.exports = {
         validator: require(`./dist/core/validator`),
     },
     mail: {
-        mailgun: require(`./dist/mail/mailgun`)
+        mailgun: require(`./dist/mail/mailgun`),
+        sendgrid: require(`./dist/mail/sendgrid`)
     },
     payment: {
         coinbase: require(`./dist/payment/coinbase`),
