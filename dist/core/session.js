@@ -111,5 +111,6 @@ module.exports = {
     get,
     create,
     edit,
-    close
+    close,
+    account: {}
 };

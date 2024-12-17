@@ -9,7 +9,17 @@ if (!config.cryptomus) {
 const crypto = require(`crypto`);
 
 
-const create = async function(currency, amount) {
+const verifyWebhook = function(payload) {
+    const { sign, ...data } = payload;
+
+    if (!crypto.timingSafeEqual(Buffer.from(sign), Buffer.from(crypto.createHash(`md5`).update(Buffer.from(JSON.stringify(data)).toString(`base64`) + config.cryptomus.key).digest(`hex`)))) {
+        return false;
+    };
+
+    return true;
+};
+
+const createPayment = async function(currency, amount) {
     const body = JSON.stringify({
         order_id: crypto.randomUUID(),
         currency: currency,
@@ -44,22 +54,12 @@ const create = async function(currency, amount) {
     };
 };
 
-const verify = function(payload) {
-    const { sign, ...data } = payload;
-
-    if (data.status !== `paid` && data.status !== `paid_over`) {
-        return false;
-    };
-
-    if (!crypto.timingSafeEqual(Buffer.from(sign), Buffer.from(crypto.createHash(`md5`).update(Buffer.from(JSON.stringify(data)).toString(`base64`) + config.cryptomus.key).digest(`hex`)))) {
-        return false;
-    };
-
-    return true;
-};
-
 
 module.exports = {
-    create,
-    verify
+    payment: {
+        create: createPayment
+    },
+    webhook: {
+        verify: verifyWebhook
+    }
 };

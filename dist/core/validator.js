@@ -73,15 +73,13 @@ const f_value = function(value, schema) {
         };
 
         case `int`: {
-            if (typeof value === `string`) {
-                value = parseInt(value);  
-            };
-    
+            value = parseInt(value);
+
             if (isNaN(value) || value % 1 !== 0) {
                 error = `'int' required`;
                 return false;
             };
-    
+
             if (schema.min !== undefined && value < schema.min) {
                 error = `'${schema.min} < value' required`;
                 return false;
@@ -96,10 +94,8 @@ const f_value = function(value, schema) {
         };
 
         case `uint`: {
-            if (typeof value === `string`) {
-                value = parseInt(value);  
-            };
-    
+            value = parseInt(value);
+
             if (isNaN(value) || value % 1 !== 0 || value < 0) {
                 error = `'uint' required`;
                 return false;
@@ -114,10 +110,8 @@ const f_value = function(value, schema) {
         };
 
         case `int8`: {
-            if (typeof value === `string`) {
-                value = parseInt(value);  
-            };
-    
+            value = parseInt(value);
+
             if (isNaN(value) || value % 1 !== 0 || value < -128 || value > 128) {
                 error = `'int8' required`;
                 return false;
@@ -127,10 +121,8 @@ const f_value = function(value, schema) {
         };
 
         case `uint8`: {
-            if (typeof value === `string`) {
-                value = parseInt(value);  
-            };
-    
+            value = parseInt(value);
+
             if (isNaN(value) || value % 1 !== 0 || value < 0 || value > 256) {
                 error = `'uint8' required`;
                 return false;
@@ -140,10 +132,8 @@ const f_value = function(value, schema) {
         };
 
         case `int16`: {
-            if (typeof value === `string`) {
-                value = parseInt(value);  
-            };
-    
+            value = parseInt(value);
+
             if (isNaN(value) || value % 1 !== 0 || value < -32768 || value > 32768) {
                 error = `'int16' required`;
                 return false;
@@ -153,10 +143,8 @@ const f_value = function(value, schema) {
         };
 
         case `uint16`: {
-            if (typeof value === `string`) {
-                value = parseInt(value);  
-            };
-    
+            value = parseInt(value);
+
             if (isNaN(value) || value % 1 !== 0 || value < 0 || value > 65536) {
                 error = `'uint16' required`;
                 return false;
@@ -166,10 +154,8 @@ const f_value = function(value, schema) {
         };
 
         case `int32`: {
-            if (typeof value === `string`) {
-                value = parseInt(value);  
-            };
-    
+            value = parseInt(value);
+
             if (isNaN(value) || value % 1 !== 0 || value < -2147483648 || value > 2147483648) {
                 error = `'int32' required`;
                 return false;
@@ -179,10 +165,8 @@ const f_value = function(value, schema) {
         };
 
         case `uint32`: {
-            if (typeof value === `string`) {
-                value = parseInt(value);  
-            };
-    
+            value = parseInt(value);
+
             if (isNaN(value) || value % 1 !== 0 || value < 0 || value > 4294967295) {
                 error = `'uint32' required`;
                 return false;
@@ -192,10 +176,8 @@ const f_value = function(value, schema) {
         };
 
         case `float`: {
-            if (typeof value === `string`) {
-                value = parseFloat(value);  
-            };
-    
+            value = parseFloat(value);
+
             if (isNaN(value)) {
                 error = `'float' required`;
                 return false;

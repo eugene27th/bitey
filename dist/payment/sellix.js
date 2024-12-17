@@ -9,7 +9,15 @@ if (!config.sellix) {
 const crypto = require(`crypto`);
 
 
-const create = async function(currency, amount, title, email) {
+const verifyWebhook = async function(signature, data) {
+    if (!crypto.timingSafeEqual(Buffer.from(crypto.createHmac(`sha512`, config.sellix.webhook_secret).update(JSON.stringify(data)).digest(`hex`)), Buffer.from(signature, `utf-8`))) {
+        return false;
+    };
+    
+    return true;
+};
+
+const createPayment = async function(currency, amount, title, email) {
     const request = await fetch(`https://dev.sellix.io/v1/payments`, {
         method: `POST`,
         headers: {
@@ -42,16 +50,12 @@ const create = async function(currency, amount, title, email) {
     };
 };
 
-const verify = async function(signature, event, data) {
-    if (event !== `order:paid` || !crypto.timingSafeEqual(Buffer.from(crypto.createHmac(`sha512`, config.sellix.webhook_secret).update(JSON.stringify(data)).digest(`hex`)), Buffer.from(signature, `utf-8`))) {
-        return false;
-    };
-    
-    return true;
-};
-
 
 module.exports = {
-    create,
-    verify
+    payment: {
+        create: createPayment
+    },
+    webhook: {
+        verify: verifyWebhook
+    }
 };

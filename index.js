@@ -1,13 +1,12 @@
 const config = require(`${process.cwd()}/config.json`);
 
 const uws = require(`uWebSockets.js`);
-const crypto = require(`crypto`);
 
-const cache = require(`./dist/core/cache`);
-const mysql = require(`./dist/core/mysql`);
+const parser = require(`./dist/core/parser`);
 const logger = require(`./dist/core/logger`);
+const limiter = require(`./dist/core/limiter`);
 const session = require(`./dist/core/session`);
-const validator = require(`./dist/core/validator`);
+const challenge = require(`./dist/core/challenge`);
 
 
 let app = uws.App();
@@ -15,6 +14,7 @@ let app = uws.App();
 
 app.options(`/*`, function(res, req) {
     const origin = req.getHeader(`origin`);
+    
     let headers = `content-type, content-length, host, user-agent, accept, accept-encoding, connection, cache-control, cookie, session, cf-connecting-ip, cf-ipcountry, challenge`;
 
     res.writeHeader(`Vary`, `Origin`);
@@ -144,7 +144,7 @@ for (const method of [`get`, `post`, `patch`, `del`]) {
                 },
                 schema: options.schema,
                 log: {
-                    payload: true,
+                    body: true,
                     ...options.log
                 },
                 turnstile: options.turnstile || false,
@@ -156,98 +156,32 @@ for (const method of [`get`, `post`, `patch`, `del`]) {
                 }
             };
 
-            if (req.options.limit) {
-                const cache_key = `http_limit:url=${req.url}-ip=${req.headers.ip}`;
-        
-                let remaining = cache.get(cache_key);
-            
-                if (remaining !== null) {
-                    if (remaining < 1) {
-                        return res.send({
-                            error: `ER_RATE_LIMIT`,
-                            message: `${req.options.limit.attempts} attempts per ${req.options.limit.per} seconds`
-                        }, 429);
-                    };
-            
-                    remaining--;
-                };
-            
-                cache.set([cache_key], remaining === null ? req.options.limit.attempts - 1 : remaining, req.options.limit.per);
+            if (!limiter.allowed(`http_limit:url=${req.url}-ip=${req.headers.ip}`, req.options.limit.attempts, req.options.limit.per)) {
+                return res.send({
+                    error: `ER_RATE_LIMIT`,
+                    message: `${req.options.limit.attempts} attempts per ${req.options.limit.per} seconds`
+                }, 429);
             };
-
+            
             if (req.options.schema?.params) {
-                req.params = [];
+                req.params = parser.params(req);
 
-                for (let i = 0; i < req.options.schema.params.length; i++) {
-                    const param = req.getParameter(i);
-
-                    if (!param) {
-                        return res.send({
-                            error: `ER_INV_DATA`,
-                            message: `parameter[${i}] is missing`
-                        }, 400);
-                    };
-
-                    if (!validator.value(param, req.options.schema.params[i])) {
-                        return res.send({
-                            error: `ER_INV_DATA`,
-                            message: `parameter[${i}] is invalid > ${validator.error()}`
-                        }, 400);
-                    };
-
-                    req.params.push(param);
+                if (req.params.error) {
+                    return res.send({
+                        error: `ER_INV_DATA`,
+                        message: req.params.error
+                    }, 400);
                 };
             };
 
             if (req.options.schema?.query) {
-                req.query = {};
+                req.query = parser.query(req);
 
-                const string = req.getQuery();
-
-                if (string) {
-                    const pairs = string.split(`&`);
-    
-                    if (req.options.schema.query.max && pairs.length > req.options.schema.query.max) {
-                        return res.send({
-                            error: `ER_INV_DATA`,
-                            message: `query string is invalid > 'length < ${req.options.schema.query.max}' required`
-                        }, 400);
-                    };
-        
-                    if (req.options.schema.query.min && pairs.length < req.options.schema.query.min) {
-                        return res.send({
-                            error: `ER_INV_DATA`,
-                            message: `query string is invalid > '${req.options.schema.query.min} < length' required`
-                        }, 400);
-                    };
-        
-                    for (const pair of pairs) {
-                        const [key, value] = pair.split(`=`);
-                        req.query[key] = value;
-                    };
-
-                    if (!validator.json(req.query, req.options.schema.query)) {
-                        return res.send({
-                            error: `ER_INV_DATA`,
-                            message: `query string is invalid > ${validator.error()}`
-                        }, 400);
-                    };
-                } else {
-                    if (req.options.schema.query.min) {
-                        return res.send({
-                            error: `ER_INV_DATA`,
-                            message: `query string is missing`
-                        }, 400);
-                    };
-        
-                    for (const property of Object.values(req.options.schema.query.properties)) {
-                        if (property.required) {
-                            return res.send({
-                                error: `ER_INV_DATA`,
-                                message: `query string is missing`
-                            }, 400);
-                        };
-                    };
+                if (req.query.error) {
+                    return res.send({
+                        error: `ER_INV_DATA`,
+                        message: req.query.error
+                    }, 400);
                 };
             };
 
@@ -268,210 +202,13 @@ for (const method of [`get`, `post`, `patch`, `del`]) {
                     };
 
                     if (req.options.schema?.body) {
-                        req.body = {};
-
-                        if (req.options.schema.body.json) {
-                            if ((req.headers.content_type === `application/json` || req.headers.content_type === `application/json; charset=utf-8`) && req.raw) {
-                                try {
-                                    req.body.json = JSON.parse(req.raw);
-                                } catch (err) {
-                                    return res.send({
-                                        error: `ER_INV_DATA`,
-                                        message: `body raw is invalid`
-                                    }, 400);
-                                };
-                
-                                const length = Object.keys(req.body.json).length;
-                
-                                if (req.options.schema.body.json.max && length > req.options.schema.body.json.max) {
-                                    return res.send({
-                                        error: `ER_INV_DATA`,
-                                        message: `body raw is invalid > 'length < ${req.options.schema.body.json.max}' required`
-                                    }, 400);
-                                };
-                    
-                                if (req.options.schema.body.json.min && length < req.options.schema.body.json.min) {
-                                    return res.send({
-                                        error: `ER_INV_DATA`,
-                                        message: `body raw is invalid > '${req.options.schema.body.json.min} < length' required`
-                                    }, 400);
-                                };
-                
-                                if (!validator.json(req.body.json, req.options.schema.body.json)) {
-                                    return res.send({
-                                        error: `ER_INV_DATA`,
-                                        message: `body raw is invalid > ${validator.error()}`
-                                    }, 400);
-                                };
-                            } else {
-                                if (req.options.schema.body.json.min) {
-                                    return res.send({
-                                        error: `ER_INV_DATA`,
-                                        message: `body raw is missing`
-                                    }, 400);
-                                };
-            
-                                for (const property of Object.values(req.options.schema.body.json.properties)) {
-                                    if (property.required) {
-                                        return res.send({
-                                            error: `ER_INV_DATA`,
-                                            message: `body raw is missing`
-                                        }, 400);
-                                    };
-                                };
-                            };
-                        } else if (req.options.schema.body.form) {
-                            if (req.headers.content_type.search(`multipart/form-data`) > -1 && req.raw) {
-                                const parts = uws.getParts(req.raw, req.headers.content_type);
-            
-                                if (req.options.schema.body.form.max && parts.length > req.options.schema.body.form.max) {
-                                    return res.send({
-                                        error: `ER_INV_DATA`,
-                                        message: `multipart is invalid > 'length < ${req.options.schema.body.form.max}' required`
-                                    }, 400);
-                                };
-                    
-                                if (req.options.schema.body.form.min && parts.length < req.options.schema.body.form.min) {
-                                    return res.send({
-                                        error: `ER_INV_DATA`,
-                                        message: `multipart is invalid > '${req.options.schema.body.form.min} < length' required`
-                                    }, 400);
-                                };
-                
-                                for (const [key, property] of Object.entries(req.options.schema.body.form.properties)) {
-                                    if (property.required && parts.findIndex(function(x) { return key === x.name }) < 0) {
-                                        return res.send({
-                                            error: `ER_INV_DATA`,
-                                            message: `multipart is invalid > '${key}' is missing`
-                                        }, 400);
-                                    };
-                                };
-                
-                                req.body.form = {};
-                
-                                for (const part of parts) {
-                                    if (!req.options.schema.body.form.properties[part.name]) {
-                                        return res.send({
-                                            error: `ER_INV_DATA`,
-                                            message: `multipart is invalid > '${part.name}' is not required`
-                                        }, 400);
-                                    };
-    
-                                    if (typeof part.filename === `undefined`) {
-                                        if (req.options.schema.body.form.properties[part.name].type === `file`) {
-                                            return res.send({
-                                                error: `ER_INV_DATA`,
-                                                message: `multipart is invalid > '${part.name}' is invalid > file required`
-                                            }, 400);
-                                        };
-                
-                                        const value = req.raw.from(part.data).toString();
-                
-                                        if (!validator.value(value, req.options.schema.body.form.properties[part.name])) {
-                                            return res.send({
-                                                error: `ER_INV_DATA`,
-                                                message: validator.error()
-                                            }, 400);
-                                        };
-                
-                                        if (req.body.form[part.name]) {
-                                            return res.send({
-                                                error: `ER_INV_DATA`,
-                                                message: `multipart is invalid > '${part.name}' is invalid > duplicated`
-                                            }, 400);
-                                        };
-                
-                                        req.body.form[part.name] = value;
-                                    } else {
-                                        if (req.options.schema.body.form.properties[part.name].type !== `file`) {
-                                            return res.send({
-                                                error: `ER_INV_DATA`,
-                                                message: `multipart is invalid > '${part.name}' is invalid > not a file required`
-                                            }, 400);
-                                        };
-    
-                                        if (part.filename.length < 1) {
-                                            return res.send({
-                                                error: `ER_INV_DATA`,
-                                                message: `multipart is invalid > '${part.name}' is invalid > file is invalid`
-                                            }, 400);
-                                        };
-                    
-                                        if (part.data.byteLength > req.options.schema.body.form.properties[part.name].size) {
-                                            return res.send({
-                                                error: `ER_INV_DATA`,
-                                                message: `multipart is invalid > '${part.name}' is invalid > 'file size < ${req.options.schema.body.form.properties[part.name].size} b' required`
-                                            }, 400);
-                                        };
-                    
-                                        if (!req.options.schema.body.form.properties[part.name].mimetypes.includes(part.type)) {
-                                            return res.send({
-                                                error: `ER_INV_DATA`,
-                                                message: `multipart is invalid > '${part.name}' is invalid > '${req.options.schema.body.form.properties[part.name].mimetypes.join(` / `)}' mimetype required`
-                                            }, 400);
-                                        };
-                    
-                                        const mimetypes = {
-                                            [`image/png`]: `png`,
-                                            [`image/jpeg`]: `jpg`,
-                                            [`image/webp`]: `webp`,
-                                            [`image/gif`]: `gif`,
-                                            [`image/svg+xml`]: `svg`,
-                                            [`application/zip`]: `zip`,
-                                            [`application/zip-compressed`]: `zip`,
-                                            [`application/x-zip-compressed`]: `zip`,
-                                            [`video/mp4`]: `mp4`
-                                        };
-                    
-                                        let file = {
-                                            name: part.filename,
-                                            mimetype: part.type,
-                                            ext: mimetypes[part.type],
-                                            size: part.data.byteLength,
-                                            buffer: Buffer.from(part.data)
-                                        };
-                    
-                                        if (req.options.schema.body.form.properties[part.name].hash) {
-                                            file.hash = crypto.createHash(`md5`).update(file.buffer).digest(`hex`);
-                                        };
-                    
-                                        if (req.body.form[part.name]) {
-                                            if (Array.isArray(req.body.form[part.name])) {
-                                                if (req.body.form[part.name].length >= req.options.schema.body.form.properties[part.name].max) {
-                                                    return res.send({
-                                                        error: `ER_INV_DATA`,
-                                                        message: `multipart is invalid > '${part.name}' is invalid > 'length < ${req.options.schema.body.form.properties[part.name].max}' required`
-                                                    }, 400);
-                                                };
-                    
-                                                req.body.form[part.name].push(file)
-                                            } else {
-                                                req.body.form[part.name] = [req.body.form[part.name], file];
-                                            };
-                    
-                                            continue;
-                                        };
-                    
-                                        req.body.form[part.name] = file;
-                                    };
-                                };
-                            } else {
-                                if (req.options.schema.body.form.min) {
-                                    return res.send({
-                                        error: `ER_INV_DATA`,
-                                        message: `multipart is missing`
-                                    }, 400);
-                                };
-                                
-                                for (const property of Object.values(req.options.schema.body.form.properties)) {
-                                    if (property.required) {
-                                        return res.send({
-                                            error: `ER_INV_DATA`,
-                                            message: `multipart is missing`
-                                        }, 400);
-                                    };
-                                };
-                            };
+                        req.body = parser.body(req);
+        
+                        if (req.body.error) {
+                            return res.send({
+                                error: `ER_INV_DATA`,
+                                message: req.body.error
+                            }, 400);
                         };
                     };
 
@@ -480,68 +217,36 @@ for (const method of [`get`, `post`, `patch`, `del`]) {
                     };
 
                     if (config.cloudflare && req.options.turnstile) {
-                        if (!req.headers.challenge) {
+                        const result = await challenge.turnstile(req);
+
+                        if (result.error) {
                             return res.send({
-                                error: `ER_INV_DATA`,
-                                message: `turnstile is invalid > header 'challenge' is missing`
+                                error: result.error,
+                                message: result.message
                             }, 400);
                         };
-        
-                        let form = new FormData();
-                            form.append(`secret`, config.cloudflare.turnstile.secret_key);
-                            form.append(`response`, req.headers.challenge);
-                            form.append(`remoteip`, req.headers.ip);
-        
-                        const request = await fetch(`https://challenges.cloudflare.com/turnstile/v0/siteverify`, {
-                            method: `POST`,
-                            body: form
-                        });
-                    
-                        if (request.status != 200) {
-                            logger.log(`[HTTP TURNSTILE] [FAILED] [${req.method}] [${req.url}] [${req.headers.ip}] [${request.status}]`);
-        
-                            return res.send({
-                                error: `ER_INV_DATA`,
-                                message: `turnstile is invalid > challenge is failed`
-                            }, 400);
-                        };
-                    
-                        const response = await request.json();
-                    
-                        if (!response.success) {
-                            logger.log(`[HTTP TURNSTILE] [FAILED] [${req.method}] [${req.url}] [${req.headers.ip}] [${request[`error-codes`]}]`);
-        
-                            return res.send({
-                                error: `ER_INV_DATA`,
-                                message: `turnstile is invalid > challenge is failed`
-                            }, 400);
-                        };
-        
-                        logger.log(`[HTTP TURNSTILE] [SUCCESS] [${req.method}] [${req.url}] [${req.headers.ip}]`);
                     };
-        
+
                     if (config.session && req.options.auth.required !== 0) {
                         req.session = await session.get(res, req);
-        
+                        
                         if (req.session) {
-                            req.session.account = cache.get(`accounts:id=${req.session.id}`) || await mysql.exe(`SELECT * FROM accounts WHERE id = ?`, [req.session.id]);
+                            req.session.account = await session.account.get(`id`, req.session.id);
                     
-                            if (req.session.account) {
-                                cache.set([`accounts:id=${req.session.id}`], req.session.account);
-                            } else {
+                            if (!req.session.account) {
                                 await session.close(res, req);
                     
                                 return res.send({
                                     error: `ER_SESSION_RELOAD_NEEDED`
                                 }, 400);
                             };
-        
+                    
                             if (req.options.auth.required === 2) {
                                 return res.send({
                                     error: `ER_ALR_AUTH`
                                 }, 400);
                             };
-        
+                    
                             if (req.options.auth.permissions.length > 0 && !req.options.auth.permissions.includes(req.session.account.permission)) {
                                 return res.send({
                                     error: `ER_ACS_DENIED`
@@ -553,13 +258,8 @@ for (const method of [`get`, `post`, `patch`, `del`]) {
                             }, 401);
                         };
                     };
-    
-                    // todo: банворды в опциях метода
-                    if (req.options.schema && req.options.log.payload) {
-                        logger.log(`[HTTP] [${req.method}] [${req.url}] [${req.headers.ip}] [${req.session?.account.id || `NULL`}] [${JSON.stringify({ params: req.params, query: req.query, body: req.body })}]`);
-                    } else {
-                        logger.log(`[HTTP] [${req.method}] [${req.url}] [${req.headers.ip}] [${req.session?.account.id || `NULL`}]`);
-                    };
+
+                    logger.http(req);
     
                     if (res.aborted) {
                         return false;
@@ -603,10 +303,6 @@ app.action = function(url, action, options, callback) {
             ...options.auth
         },
         schema: options.schema,
-        log: {
-            payload: true,
-            ...options.log
-        },
         limit: {
             attempts: 30,
             per: 60,
@@ -689,19 +385,21 @@ app.start = function() {
         
                     if (config.session) {
                         req.session = await session.get(res, req);
-        
-                        if (req.session) {
-                            req.session.account = cache.get(`accounts:id=${req.session.id}`) || await mysql.exe(`SELECT * FROM accounts WHERE id = ?`, [req.session.id]);
+                        
+                        if (!req.session) {
+                            return res.send({
+                                error: `ER_SESSION_REQUIRED`
+                            }, 403);
+                        };
                     
-                            if (req.session.account) {
-                                cache.set([`accounts:id=${req.session.id}`], req.session.account);
-                            } else {
-                                await session.close(res, req);
+                        req.session.account = await session.account.get(`id`, req.session.id);
                     
-                                return res.send({
-                                    error: `ER_SESSION_RELOAD_NEEDED`
-                                }, 400);
-                            };
+                        if (!req.session.account) {
+                            await session.close(res, req);
+                    
+                            return res.send({
+                                error: `ER_SESSION_RELOAD_NEEDED`
+                            }, 400);
                         };
                     };
         
@@ -726,82 +424,37 @@ app.start = function() {
                 },
             
                 message: async function(ws, message, isBinary) {
-                    message = isBinary ? message.split(`::`) : Buffer.from(message).toString().split(`::`);
-        
-                    ws.message = {
-                        ident: message[0],
-                        action: message[1],
-                        data: message[2] || null
-                    };
-        
-                    if (!ws.message.ident || !validator.value(ws.message.ident, { type: `uint`, min: 0, max: 1e10 })) {
+                    ws.message = parser.message(message, isBinary);
+                    
+                    if (ws.message.error) {
                         return ws.send({
                             error: `ER_INV_DATA`,
-                            message: `ident is invalid > ${validator.error()}`
+                            message: ws.message.error
                         }, 2);
                     };
-        
-                    if (!ws.message.action || !validator.value(ws.message.action, { type: `string`, min: 1, max: 128 })) {
+
+                    const action = app.ws_actions[url][ws.message.action];
+
+                    if (!limiter.allowed(`ws_limit:url=${url}-action=${ws.message.action}-ip=${ws.headers.ip}`, callback.options.limit.attempts, callback.options.limit.per)) {
                         return ws.send({
-                            error: `ER_INV_DATA`,
-                            message: `action is invalid > ${validator.error()}`
-                        }, 2);
+                            error: `ER_RATE_LIMIT`,
+                            message: `${callback.options.limit.attempts} attempts per ${callback.options.limit.per} seconds`
+                        }, 3);
                     };
-        
-                    if (ws.message.data) {
-                        try {
-                            ws.message.data = JSON.parse(ws.message.data);
-                        } catch (err) {
-                            return ws.send({
-                                error: `ER_INV_DATA`,
-                                message: `data is invalid`
-                            }, 2);
-                        };
-                    };
-                    
-                    const callback = app.ws_actions[url][ws.message.action];
-        
-                    if (!callback) {
-                        return ws.send({
-                            error: `ER_INV_DATA`,
-                            message: `action not found`
-                        }, 2);
-                    };
-        
-                    if (callback.options.limit) {
-                        const cache_key = `ws_limit:url=${url}-action=${ws.message.action}-ip=${ws.headers.ip}`;
-            
-                        let remaining = cache.get(cache_key);
-                    
-                        if (remaining !== null) {
-                            if (remaining < 1) {
-                                ws.send({
-                                    error: `ER_RATE_LIMIT`,
-                                    message: `${callback.options.limit.attempts} attempts per ${callback.options.limit.per} seconds`
-                                }, 3);
-                
-                                return ws.end();
-                            };
-                    
-                            remaining--;
-                        };
-                    
-                        cache.set([cache_key], remaining === null ? callback.options.limit.attempts - 1 : remaining, callback.options.limit.per);
-                    };
-        
-                    if (callback.options.auth && callback.options.auth.required !== 0) {
+
+                    if (config.session && callback.options.auth && callback.options.auth.required !== 0) {
                         if (callback.options.auth.required === 2 && ws.session) {
                             return ws.send({
                                 error: `ER_ALR_AUTH`
                             }, 2);
                         };
-        
+                    
                         if (!ws.session) {
                             return ws.send({
                                 error: `ER_NOT_AUTH`
                             }, 2);
                         };
-        
+                    
                         if (callback.options.auth.permissions.length > 0 && !callback.options.auth.permissions.includes(ws.session.account.permission)) {
                             return ws.send({
                                 error: `ER_ACS_DENIED`
@@ -809,37 +462,10 @@ app.start = function() {
                         };
                     };
         
-                    if (callback.options.schema) {
-                        if (!ws.message.data) {
-                            if (callback.options.schema.min) {
-                                return ws.send({
-                                    error: `ER_INV_DATA`,
-                                    message: `data is missing`
-                                }, 2);
-                            };
-        
-                            for (const properties of Object.values(callback.options.schema.properties)) {
-                                if (properties.required) {
-                                    return ws.send({
-                                        error: `ER_INV_DATA`,
-                                        message: `data is missing`
-                                    }, 2);
-                                };
-                            };
-                        };
-        
-                        if (!validator.json(ws.message.data, callback.options.schema)) {
-                            return ws.send({
-                                error: `ER_INV_DATA`,
-                                message: `data is invalid > ${validator.error()}`
-                            }, 2);
-                        };
-                    };
-        
                     logger.log(`[WS MESSAGE] [${url}] [${ws.message.action}] [${ws.headers.ip}] [${ws.session.account.id || `NULL`}] [${JSON.stringify(ws.message.data)}]`);
                     
                     try {
-                        return await app.ws_actions[url][ws.message.action].callback(ws, ws.message.data);
+                        return await action.callback(ws, ws.message.data);
                     } catch (err) {
                         console.log(`err from ws message -> `, err);
         

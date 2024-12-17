@@ -1,15 +1,19 @@
 /*
     Создание платежа.
     
-    Аргументы: валюта, сумма (В ЦЕНТАХ), заголовок.
+    Аргументы:
+        - валюта
+        - сумма (в центах)
+        - название
+        - интервал (если оформляется подписка)
 
     Возвращаемое значение: {
-        id: `123`,
-        url: `https://payment.domain/payment_id
+        id: `cs_test_a1Vymsrh74twYA9clj6I8fSDX51tEo4hbvR86nwYiGMgN4LvcXAVELeibj`,
+        url: `https://checkout.stripe.com/c/pay/cs_test_a135zY2hhPmFV947BoRCAy7Qqv1cGGzuYk1uDOHeeNbBSHvus0EEwQUnY6#fid2cGd2ZndsdXFsamtQa2x0cGBrYHZ2QGtkZ2lgYSc%2FY2RpdmApJ2R1bE5gfCc%2FJ3VuWnFgdnFaMDRIYHI2UU1TPENTdDxjc3NpZ3doc01cclJuYHJIPTIyNmk8THB9U0x%2FfXdRVWt9czFDSmdVQk5QV1V8bnJcN3dWQ1VCQlRSXHwwM2kwQUlwRHZ2SXN%2FQzw1NUZnV0ptczBcJyknY3dqaFZgd3Ngdyc%2FcXdwYCknaWR8anBxUXx1YCc%2FJ3Zsa2JpYFpscWBoJyknYGtkZ2lgVWlkZmBtamlhYHd2Jz9xd3BgeCUl`
     }
 */
 
-const payment = await bitey.payment.stripe.create(`USD`, 1000, `Top up your balance.`);
+const payment = await bitey.payment.stripe.checkout.create(`USD`, 1000, `Name`, `month`);
 
 /*
     Проверить подлинность запроса.
@@ -23,4 +27,4 @@ const payment = await bitey.payment.stripe.create(`USD`, 1000, `Top up your bala
     Возвращаемое значение: boolean. true - проверка пройдена, false - нет.
 */
 
-const is_valid = bitey.payment.stripe.verify(`signature`, `raw`, 15);
+const is_valid = bitey.payment.stripe.webhook.verify(`signature`, `raw`, 15);

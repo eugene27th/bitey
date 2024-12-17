@@ -9,7 +9,15 @@ if (!config.coinbase) {
 const crypto = require(`crypto`);
 
 
-const create = async function(currency, amount, name, description) {
+const verifyWebhook = async function(signature, data) {
+    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(crypto.createHmac(`sha256`, config.coinbase.webhook_secret).update(JSON.stringify(data), `utf8`).digest(`hex`)))) {
+        return false;
+    };
+
+    return true;
+};
+
+const createCharge = async function(currency, amount, name, description) {
     const request = await fetch(`https://api.commerce.coinbase.com/charges`, {
         method: `POST`,
         headers: {
@@ -43,20 +51,12 @@ const create = async function(currency, amount, name, description) {
     return response.data;
 };
 
-const verify = async function(signature, data) {
-    if (data.event?.type !== `charge:confirmed`) {
-        return false;
-    };
-
-    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(crypto.createHmac(`sha256`, config.coinbase.webhook_secret).update(JSON.stringify(data), `utf8`).digest(`hex`)))) {
-        return false;
-    };
-
-    return true;
-};
-
 
 module.exports = {
-    create,
-    verify
+    charge: {
+        create: createCharge
+    },
+    webhook: {
+        verify: verifyWebhook
+    }
 };

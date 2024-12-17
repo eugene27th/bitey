@@ -9,7 +9,7 @@
     }
 */
 
-const payment = await bitey.payment.cryptomus.create(`USD`, 1000);
+const payment = await bitey.payment.cryptomus.payment.create(`USD`, 1000);
 
 /*
     Проверить подлинность запроса.
@@ -20,4 +20,4 @@ const payment = await bitey.payment.cryptomus.create(`USD`, 1000);
     Возвращаемое значение: boolean. true - проверка пройдена, false - нет.
 */
 
-const is_valid = bitey.payment.cryptomus.verify(req.body.json);
+const is_valid = bitey.payment.cryptomus.webhook.verify(req.body.json);

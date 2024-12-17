@@ -28,7 +28,24 @@ const log = async function(log, in_console) {
     return await fs.appendFile(`${path}/${utils.date()}.log`, `${log}\n`);
 };
 
+const http = async function(req) {
+    if (!req.options.schema) {
+        return await logger.log(`[HTTP] [${req.method}] [${req.url}] [${req.headers.ip}] [${req.session?.account.id || `NULL`}]`);
+    };
+
+    if (!req.options.log.body) {
+        return await logger.log(`[HTTP] [${req.method}] [${req.url}] [${req.headers.ip}] [${req.session?.account.id || `NULL`}] [${JSON.stringify({ params: req.params, query: req.query })}]`);
+    };
+
+    if (!req.options.log.bankeys) {
+        return await logger.log(`[HTTP] [${req.method}] [${req.url}] [${req.headers.ip}] [${req.session?.account.id || `NULL`}] [${JSON.stringify({ params: req.params, query: req.query, body: req.body })}]`);
+    };
+
+    // todo: bankeys
+};
+
 
 module.exports = {
-    log
+    log,
+    http
 };

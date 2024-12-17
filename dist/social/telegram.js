@@ -13,10 +13,10 @@ const utils = require(`../core/utils`);
 const valid = function(payload, tolerance = 2) {
     const { hash, ...data } = payload;
 
-    const secret = createHash(`sha256`).update(config.telegram.token).digest();
+    const secret = crypto.createHash(`sha256`).update(config.telegram.token).digest();
     const string = Object.keys(data).sort().filter(key => data[key]).map(key => (`${key}=${data[key]}`)).join(`\n`);
 
-    const sign = createHmac(`sha256`, secret).update(string).digest(`hex`);
+    const sign = crypto.createHmac(`sha256`, secret).update(string).digest(`hex`);
 
     if (!crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(sign)) || (utils.timestamp() - data.auth_date) > (tolerance * 60)) {
         return false;
