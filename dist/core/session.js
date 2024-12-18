@@ -1,10 +1,8 @@
 const config = require(`${process.cwd()}/config.json`);
 
-
 if (!config.session || !config.database?.redis) {
     return module.exports = null;
 };
-
 
 const crypto = require(`crypto`);
 

@@ -1,10 +1,8 @@
 const config = require(`${process.cwd()}/config.json`);
 
-
 if (!config.stripe) {
     return module.exports = null;
 };
-
 
 const crypto = require(`crypto`);
 const utils = require(`../core/utils`);

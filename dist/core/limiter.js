@@ -12,7 +12,9 @@ const allowed = function(key, attempts, per) {
         remaining--;
     };
 
-    return cache.set([key], remaining === null ? attempts - 1 : remaining, per);
+    cache.set([key], remaining === null ? attempts - 1 : remaining, per);
+
+    return true;
 };
 
 

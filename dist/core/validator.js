@@ -212,6 +212,11 @@ const f_value = function(value, schema) {
         };
 
         case `pattern`: {
+            if (typeof value !== `string`) {
+                error = `pattern '${schema.pattern}' required`;
+                return false;
+            };
+
             let pattern = schema.pattern;
 
             if (patterns[schema.pattern]) {

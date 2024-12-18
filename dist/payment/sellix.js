@@ -1,10 +1,8 @@
 const config = require(`${process.cwd()}/config.json`);
 
-
 if (!config.sellix) {
     return module.exports = null;
 };
-
 
 const crypto = require(`crypto`);
 

@@ -1,6 +1,5 @@
 const config = require(`${process.cwd()}/config.json`);
 
-
 if (!config.sendgrid) {
     return module.exports = null;
 };

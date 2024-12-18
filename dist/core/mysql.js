@@ -1,10 +1,8 @@
 const config = require(`${process.cwd()}/config.json`);
 
-
 if (!config.database?.mysql) {
     return module.exports = null;
 };
-
 
 const connection = require(`mysql2/promise`).createPool(config.database.mysql);
 

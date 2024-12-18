@@ -1,10 +1,8 @@
 const config = require(`${process.cwd()}/config.json`);
 
-
 if (!config.password) {
     return module.exports = null;
 };
-
 
 const util = require(`util`);
 const crypto = require(`crypto`);

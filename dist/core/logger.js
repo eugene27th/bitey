@@ -30,15 +30,15 @@ const log = async function(log, in_console) {
 
 const http = async function(req) {
     if (!req.options.schema) {
-        return await logger.log(`[HTTP] [${req.method}] [${req.url}] [${req.headers.ip}] [${req.session?.account.id || `NULL`}]`);
+        return await log(`[HTTP] [${req.method}] [${req.url}] [${req.headers.ip}] [${req.session?.account.id || `NULL`}]`);
     };
 
     if (!req.options.log.body) {
-        return await logger.log(`[HTTP] [${req.method}] [${req.url}] [${req.headers.ip}] [${req.session?.account.id || `NULL`}] [${JSON.stringify({ params: req.params, query: req.query })}]`);
+        return await log(`[HTTP] [${req.method}] [${req.url}] [${req.headers.ip}] [${req.session?.account.id || `NULL`}] [${JSON.stringify({ params: req.params, query: req.query })}]`);
     };
 
     if (!req.options.log.bankeys) {
-        return await logger.log(`[HTTP] [${req.method}] [${req.url}] [${req.headers.ip}] [${req.session?.account.id || `NULL`}] [${JSON.stringify({ params: req.params, query: req.query, body: req.body })}]`);
+        return await log(`[HTTP] [${req.method}] [${req.url}] [${req.headers.ip}] [${req.session?.account.id || `NULL`}] [${JSON.stringify({ params: req.params, query: req.query, body: req.body })}]`);
     };
 
     // todo: bankeys
