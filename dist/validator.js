@@ -32,14 +32,14 @@ const enums = {
 
 
 const f_error = function() {
-    return error;  
+    return error;
 };
 
 const f_value = function(value, schema) {
-	if (typeof value === `undefined`) {
-		error = `missing`;
-		return false;
-	};
+    if (typeof value === `undefined`) {
+        error = `missing`;
+        return false;
+    };
 
     switch (schema.type) {
         case `boolean`: {
@@ -58,12 +58,12 @@ const f_value = function(value, schema) {
             };
 
             value = value.trim();
-            
+
             if (schema.min !== undefined && value.length < schema.min) {
                 error = `'${schema.min} < length' required`;
                 return false;
             };
-            
+
             if (schema.max !== undefined && value.length > schema.max) {
                 error = `'length < ${schema.max}' required`;
                 return false;
@@ -84,7 +84,7 @@ const f_value = function(value, schema) {
                 error = `'${schema.min} < value' required`;
                 return false;
             };
-            
+
             if (schema.max !== undefined && value > schema.max) {
                 error = `'value < ${schema.max}' required`;
                 return false;
@@ -100,7 +100,7 @@ const f_value = function(value, schema) {
                 error = `'uint' required`;
                 return false;
             };
-            
+
             if (schema.max !== undefined && value > schema.max) {
                 error = `'value < ${schema.max}' required`;
                 return false;
@@ -182,12 +182,12 @@ const f_value = function(value, schema) {
                 error = `'float' required`;
                 return false;
             };
-    
+
             if (schema.min !== undefined && value < schema.min) {
                 error = `'${schema.min} < value' required`;
                 return false;
             };
-            
+
             if (schema.max !== undefined && value > schema.max) {
                 error = `'value < ${schema.max}' required`;
                 return false;
@@ -202,7 +202,7 @@ const f_value = function(value, schema) {
             if (typeof schema.enum === `string`) {
                 array = enums[schema.enum];
             };
-    
+
             if (!array.includes(value)) {
                 error = `'${array.join(` / `)}' required`;
                 return false;
@@ -224,17 +224,17 @@ const f_value = function(value, schema) {
             };
 
             value = value.trim();
-    
+
             if (!(new RegExp(pattern)).test(value)) {
                 error = `pattern '${schema.pattern}' required`;
                 return false;
             };
-    
+
             if (schema.min !== undefined && value.length < schema.min) {
                 error = `'${schema.min} < length' required`;
                 return false;
             };
-            
+
             if (schema.max !== undefined && value.length > schema.max) {
                 error = `'length < ${schema.max}' required`;
                 return false;
@@ -242,7 +242,7 @@ const f_value = function(value, schema) {
 
             break;
         };
-    
+
         default: {
             return false;
         };
@@ -285,19 +285,19 @@ const f_array = function(array, schema) {
                     error = `array invalid in [${i}] > ${error}`;
                     return false;
                 };
-                
+
                 continue;
             };
-    
+
             if (schema.items.type === `object`) {
                 if (!f_json(item, schema.items)) {
                     error = `array invalid in [${i}] > ${error}`;
                     return false;
                 };
-    
+
                 continue;
             };
-    
+
             if (!f_value(item, schema.items)) {
                 error = `array invalid in [${i}] > ${error}`;
                 return false;
@@ -311,74 +311,74 @@ const f_array = function(array, schema) {
 };
 
 const f_json = function(json, schema) {
-	if (typeof json !== `object`) {
-		error = `JSON is invalid`;
-		return false;
-	};
+    if (typeof json !== `object`) {
+        error = `JSON is invalid`;
+        return false;
+    };
 
-	if (!schema) {
-		return true;
-	};
+    if (!schema) {
+        return true;
+    };
 
-	if (Array.isArray(json)) {
-		error = `JSON is invalid`;
-		return false;
-	};
+    if (Array.isArray(json)) {
+        error = `JSON is invalid`;
+        return false;
+    };
 
-	const json_length = Object.keys(json).length;
+    const json_length = Object.keys(json).length;
 
-	if (schema.min !== undefined && json_length < schema.min) {
-		error = `'${schema.min} < length' required`;
-		return false;
-	};
+    if (schema.min !== undefined && json_length < schema.min) {
+        error = `'${schema.min} < length' required`;
+        return false;
+    };
 
-	if (schema.max !== undefined && json_length > schema.max) {
-		error = `'length < ${schema.max}' required`;
-		return false;
-	};
+    if (schema.max !== undefined && json_length > schema.max) {
+        error = `'length < ${schema.max}' required`;
+        return false;
+    };
 
-	for (const [key, properties] of Object.entries(schema.properties)) {
-		if (properties.required && json[key] !== 0 && !json[key]) {
-			error = `'${key}' is missing`;
-			return false;
-		};
-	};
+    for (const [key, properties] of Object.entries(schema.properties)) {
+        if (properties.required && json[key] !== 0 && !json[key]) {
+            error = `'${key}' is missing`;
+            return false;
+        };
+    };
 
-	for (const [key, value] of Object.entries(json)) {
-		if (!schema.properties[key]) {
-			error = `'${key}' is not required`;
-			return false;
-		};
+    for (const [key, value] of Object.entries(json)) {
+        if (!schema.properties[key]) {
+            error = `'${key}' is not required`;
+            return false;
+        };
 
-		if (schema.properties[key].null && value === null) {
-			continue;
-		};
+        if (schema.properties[key].null && value === null) {
+            continue;
+        };
 
         if (schema.properties[key].type === `array`) {
             if (!f_array(value, schema.properties[key])) {
                 error = `'${key}' is invalid > ${error}`;
-				return false;
-			};
-            
+                return false;
+            };
+
             continue;
         };
 
-		if (schema.properties[key].type === `object`) {
-			if (!f_json(value, schema.properties[key])) {
+        if (schema.properties[key].type === `object`) {
+            if (!f_json(value, schema.properties[key])) {
                 error = `'${key}' is invalid > ${error}`;
-				return false;
-			};
+                return false;
+            };
 
-			continue;
-		};
+            continue;
+        };
 
-		if (!f_value(value, schema.properties[key])) {
-			error = `'${key}' is invalid > ${error}`;
-			return false;
-		};
-	};
+        if (!f_value(value, schema.properties[key])) {
+            error = `'${key}' is invalid > ${error}`;
+            return false;
+        };
+    };
 
-	return true;
+    return true;
 };
 
 

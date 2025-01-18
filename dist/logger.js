@@ -15,7 +15,7 @@ const log = async function(log, in_console) {
         try {
             await fs.mkdir(path, { recursive: true });
         } catch (error) {
-            throw error;  
+            throw error;
         };
     };
 

@@ -1,4 +1,9 @@
 const config = require(`${process.cwd()}/config.json`);
+
+if (!config.cloudflare) {
+    return module.exports = null;
+};
+
 const logger = require(`./logger`);
 
 

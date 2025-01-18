@@ -1,5 +1,5 @@
 module.exports = function (app) {
-    app.post(`/hello/:number/something`, // /hello/27/something?example=cat
+    app.post(`/example/:hello/:number/:world`, // /example/something/10/else?cat=orange
         {
             auth: {
                 required: 0
@@ -7,12 +7,18 @@ module.exports = function (app) {
             schema: {
                 params: [
                     {
+                        type: `string`, min: 1, max: 64
+                    },
+                    {
                         type: `int`, min: 1, max: 30
+                    },
+                    {
+                        type: `string`, min: 1, max: 64
                     }
                 ],
                 query: {
                     properties: {
-                        example: {
+                        cat: {
                             type: `string`, min: 1, max: 128
                         }
                     }
@@ -44,11 +50,11 @@ module.exports = function (app) {
             }
         },
         async function(res, req) {
-            res.send(req.params, req.query, req.body);
+            res.send(req);
         }
     );
 
-    app.post(`/hello/getmyfile`,
+    app.post(`/file/upload`,
         {
             auth: {
                 required: 0
@@ -57,17 +63,20 @@ module.exports = function (app) {
                 body: {
                     type: `multipart/form-data`,
                     properties: {
+                        author: {
+                            type: `string`, min: 1, max: 128
+                        },
                         files: {
                             required: true,
-                            type: `file`, max: 16, size: 100 * 1e6, hash: true,
-                            mimetypes: [`image/png`, `image/jpeg`, `image/webp`, `image/gif`, `image/svg+xml`, `video/mp4`]
+                            type: `file`, max: 8, size: 32 * 1e6, hash: true,
+                            mimetypes: [`image/png`, `image/jpeg`, `image/webp`, `video/mp4`]
                         }
                     }
                 }
             }
         },
         async function(res, req) {
-            res.send(req.body);
+            res.send(req);
         }
     );
 };

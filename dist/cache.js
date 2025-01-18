@@ -117,7 +117,7 @@ const del = function(keys, deleq = false) {
             delete storage[path.folder];
         };
     };
-    
+
     return true;
 };
 

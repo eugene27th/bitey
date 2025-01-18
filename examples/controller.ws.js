@@ -39,11 +39,11 @@ module.exports = function (app) {
             }
         },
         async function(ws) {
-            ws.subscribe(`something:room_id=1`);
+            ws.subscribe(`rooms:id=1`);
 
             ws.send({
                 action: `onNewNotification`,
-                message: `После подписки на это действие будут прилетать уведомления раз в минуту с указанным действием (каналом).`
+                message: `После подписки на это действие будут прилетать уведомления раз в минуту с указанным действием (onNewNotification).`
             });
         }
     );
@@ -55,7 +55,7 @@ module.exports = function (app) {
             }
         },
         async function(ws) {
-            ws.unsubscribe(`something:room_id=1`);
+            ws.unsubscribe(`rooms:id=1`);
 
             ws.send({
                 message: `Вы успешно отписались!`
@@ -64,7 +64,7 @@ module.exports = function (app) {
     );
 
     setInterval(function() {
-        return app.publish(`something:room_id=1`, `onNewNotification`, {
+        return app.publish(`rooms:id=1`, `onNewNotification`, {
             name: `Важное оповещение!`,
             message: `Что тут у вас проиходит?`
         });

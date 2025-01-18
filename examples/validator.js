@@ -30,7 +30,7 @@
             items - описание разрешённых значений в массиве (смотреть в примере).
         
         object:
-            null - разрешён null в качестве.
+            null - разрешён null.
             properties - объект, в котором указываются ключи проверяемого объекта (смотреть в примере).
 */
 
@@ -55,31 +55,23 @@ if (!bitey.core.validator.json({
     properties: {
         value_enum: {
             required: true,
-            type: `enum`,
-            enum: [`salwador`, `eugene`]
+            type: `enum`, enum: [`salwador`, `eugene`]
         },
         value_something: {
             required: true,
-            type: `string`,
-            min: 1, max: 128,
-            null: true
+            type: `string`, min: 1, max: 128, null: true
         },
         value_pattern: {
-            type: `pattern`,
-            pattern: `email`,
-            max: 128
+            type: `pattern`, pattern: `email`, max: 128
         },
         value_array: {
-            type: `array`,
-            min: 1, max: 3,
+            type: `array`, min: 1, max: 3,
             items: {
-                type: `int`,
-                min: 1, max: 32
+                type: `int`, min: 1, max: 32
             }
         },
         value_object: {
-            type: `object`,
-            min: 1,
+            type: `object`, min: 1,
             properties: {
                 hehe: {
                     type: `boolean`
@@ -109,15 +101,12 @@ if (!bitey.core.validator.array([
         aboba: false
     }
 ], {
-    min: 1, max: 2,
-    duplicates: false,
+    min: 1, max: 2, duplicates: false,
     items: {
-        type: `object`,
-        min: 1,
+        type: `object`,  min: 1,
         properties: {
             name: {
-                type: `string`,
-                min: 1, max: 32
+                type: `string`, min: 1, max: 32
             },
             aboba: {
                 type: `boolean`
@@ -134,8 +123,7 @@ if (!bitey.core.validator.array([
 */
 
 if (!bitey.core.validator.value(`salwador-aboba`, {
-    type: `string`,
-    min: 1, max: 64
+    type: `string`, min: 1, max: 64
 })) {
     console.log(`value error -> `, bitey.core.validator.error());
 };

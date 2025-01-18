@@ -6,7 +6,7 @@ const validator = require(`./validator`);
 
 const params = function(req) {
     let params = [];
-    
+
     for (let i = 0; i < req.options.schema.params.length; i++) {
         const param = req.getParameter(i);
 
@@ -30,7 +30,7 @@ const params = function(req) {
 
 const query = function(req) {
     let query = {};
-    
+
     const string = req.getQuery();
 
     if (!string) {
@@ -47,6 +47,8 @@ const query = function(req) {
                 };
             };
         };
+
+        return query;
     };
 
     const pairs = string.split(`&`);
@@ -127,6 +129,12 @@ const form = function(req) {
 
     const parts = uws.getParts(req.raw, req.headers.content_type);
 
+    if (!parts) {
+        return {
+            error: `'multipart/form-data' content type required`
+        };
+    };
+
     if (req.options.schema.body.max && parts.length > req.options.schema.body.max) {
         return {
             error: `body raw is invalid > 'length < ${req.options.schema.body.max}' required`
@@ -164,7 +172,7 @@ const form = function(req) {
                     error: `body raw is invalid > '${part.name}' is invalid > file required`
                 };
             };
-            
+
             if (part.filename.length < 1) {
                 return {
                     error: `body raw is invalid > '${part.name}' is invalid > file is invalid`
@@ -176,7 +184,7 @@ const form = function(req) {
                     error: `body raw is invalid > '${part.name}' is invalid > 'file size < ${req.options.schema.body.properties[part.name].size} b' required`
                 };
             };
-    
+
             if (req.options.schema.body.properties[part.name].mimetypes && !req.options.schema.body.properties[part.name].mimetypes.includes(part.type)) {
                 return {
                     error: `body raw is invalid > '${part.name}' is invalid > '${req.options.schema.body.properties[part.name].mimetypes.join(` / `)}' mimetype required`
@@ -202,11 +210,11 @@ const form = function(req) {
                 size: part.data.byteLength,
                 buffer: Buffer.from(part.data)
             };
-    
+
             if (req.options.schema.body.properties[part.name].hash) {
                 file.hash = crypto.createHash(`md5`).update(file.buffer).digest(`hex`);
             };
-    
+
             if (!body[part.name]) {
                 body[part.name] = [file];
             } else {
@@ -224,7 +232,7 @@ const form = function(req) {
                     error: `body raw is invalid > '${part.name}' is invalid > not a file required`
                 };
             };
-            
+
             const value = req.raw.from(part.data).toString();
 
             if (body[part.name]) {
@@ -259,6 +267,8 @@ const body = function(req) {
                 };
             };
         };
+
+        return {};
     };
 
     if (req.options.schema.body.type === `application/json`) {
@@ -332,6 +342,8 @@ const message = function(message, isBinary) {
                 };
             };
         };
+
+        return result;
     };
 
     if (!validator.json(result.data, action.options.schema)) {

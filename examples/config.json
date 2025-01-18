@@ -7,7 +7,19 @@
             "https://domain.com"
         ],
         "headers": [
-            "custom-additional-header"
+            "content-type",
+            "content-length",
+            "host",
+            "user-agent",
+            "accept",
+            "accept-encoding",
+            "connection",
+            "cache-control",
+            "cookie",
+            "session",
+            "cf-connecting-ip",
+            "cf-ipcountry",
+            "challenge"
         ],
         "credentials": true
     },
@@ -18,7 +30,10 @@
         "termination_new_ip": true,
         "options": {
             "path": "/",
-            "age": 604800
+            "age": 604800,
+            "domain": ".domain.name",
+            "samesite": "None",
+            "secure": true
         }
     },
 
@@ -27,23 +42,22 @@
         "length": 32
     },
 
-    "database": {
-        "mysql": {
-            "host": "127.0.0.1",
-            "user": "username",
-            "database": "databasename",
-            "password": "password",
-            "waitForConnections": true,
-            "connectionLimit": 1,
-            "queueLimit": 0,
-            "multipleStatements": true,
-            "timezone": "+02:00"
-        },
-        "redis": {
-            "host": "127.0.0.1",
-            "port": 6379,
-            "password": "password"
-        }
+    "mysql": {
+        "host": "127.0.0.1",
+        "user": "username",
+        "database": "databasename",
+        "password": "password",
+        "waitForConnections": true,
+        "connectionLimit": 1,
+        "queueLimit": 0,
+        "multipleStatements": true,
+        "timezone": "+02:00"
+    },
+    
+    "redis": {
+        "host": "127.0.0.1",
+        "port": 6379,
+        "password": "password"
     },
 
     "cloudflare": {
@@ -51,61 +65,5 @@
             "secret_key": "secret_key",
             "site_key": "site_key"
         }
-    },
-
-    "mailgun": {
-        "name.domain": {
-            "url": "https://api.eu.mailgun.net/v3/mg.name.domain",
-            "key": "api_key"
-        }
-    },
-
-    "sendgrid": {
-        "name.domain": {
-            "url": "https://api.sendgrid.com",
-            "key": "api_key"
-        }
-    },
-
-    "telegram": {
-        "token": "bot_token"
-    },
-
-    "google": {
-        "id": "google_client_id",
-        "secret": "google_secret_token",
-        "webhook_url": "https://api.name.domain/webhook/google",
-        "redirect_url": "https://name.domain/profile"
-    },
-
-    "discord": {
-        "id": "discord_client_id",
-        "secret": "discord_secret_token",
-        "webhook_url": "https://api.name.domain/webhook/discord",
-        "redirect_url": "https://name.domain/profile"
-    },
-
-    "coinbase": {
-        "key": "key",
-        "webhook_secret": "webhook_secret",
-        "redirect_url": "https://domain.name/"
-    },
-
-    "cryptomus": {
-        "key": "key",
-        "merchant": "merchantuuid"
-    },
-
-    "sellix": {
-        "key": "key",
-        "webhook_secret": "secret",
-        "redirect_url": "https://domain.name/"
-    },
-
-    "stripe": {
-        "public_key": "public_key",
-        "secret_key": "secret_key",
-        "webhook_secret": "webhook_secret",
-        "redirect_url": "https://domain.name/"
     }
 }

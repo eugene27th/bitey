@@ -1,12 +1,12 @@
 const config = require(`${process.cwd()}/config.json`);
 
-if (!config.database?.redis) {
+if (!config.redis) {
     return module.exports = null;
 };
 
 
 const redis = require(`@redis/client`).createClient({
-    url: `redis://:${config.database.redis.password}@${config.database.redis.host}:${config.database.redis.port}`
+    url: `redis://:${config.redis.password}@${config.redis.host}:${config.redis.port}`
 });
 
 redis.on(`error`, function() {

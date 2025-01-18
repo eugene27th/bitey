@@ -30,7 +30,33 @@ const serialize = function(name, value, options = {}) {
         };
     };
 
-    return `${name}=${value};${options.age !== undefined ? ` Max-Age=${options.age};` : ``}${options.path ? ` Path=${options.path}`: ``}`;
+    let attributes = [];
+
+    if (options.age) {
+        attributes.push(`Max-Age=${options.age}`);
+    };
+
+    if (options.path) {
+        attributes.push(`Path=${options.path}`);
+    };
+
+    if (options.domain) {
+        attributes.push(`Domain=${options.domain}`);
+    };
+
+    if (options.samesite) {
+        attributes.push(`SameSite=${options.samesite}`);
+    };
+
+    if (options.secure) {
+        attributes.push(`Secure`);
+    };
+
+    if (attributes.length < 1) {
+        return `${name}=${value};`;
+    } else {
+        return `${name}=${value}; ${attributes.join(`; `)}`;
+    };
 };
 
 
