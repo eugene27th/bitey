@@ -18,7 +18,7 @@ const turnstile = async function(req) {
     let form = new FormData();
         form.append(`secret`, config.cloudflare.turnstile.secret_key);
         form.append(`response`, req.headers.challenge);
-        form.append(`remoteip`, req.headers.ip);
+        form.append(`remoteip`, req.headers[`cf-connecting-ip`]);
 
     const request = await fetch(`https://challenges.cloudflare.com/turnstile/v0/siteverify`, {
         method: `POST`,
@@ -26,7 +26,7 @@ const turnstile = async function(req) {
     });
 
     if (request.status != 200) {
-        logger.log(`[CLOUDFLARE TURNSTILE] [FAILED] [${req.method}] [${req.url}] [${req.headers.ip}] [${request.status}]`);
+        logger.log(`[CLOUDFLARE TURNSTILE] [FAILED] [${req.method}] [${req.url}] [${req.headers[`cf-connecting-ip`]}] [${request.status}]`);
 
         return {
             error: `ER_CHALLENGE_FAILED`,
@@ -37,7 +37,7 @@ const turnstile = async function(req) {
     const response = await request.json();
 
     if (!response.success) {
-        logger.log(`[CLOUDFLARE TURNSTILE] [FAILED] [${req.method}] [${req.url}] [${req.headers.ip}] [${request[`error-codes`]}]`);
+        logger.log(`[CLOUDFLARE TURNSTILE] [FAILED] [${req.method}] [${req.url}] [${req.headers[`cf-connecting-ip`]}] [${request[`error-codes`]}]`);
 
         return {
             error: `ER_CHALLENGE_FAILED`,

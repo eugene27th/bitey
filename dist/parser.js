@@ -81,7 +81,7 @@ const query = function(req) {
 
 
 const json = function(req) {
-    if (req.headers.content_type.search(`application/json`) < 0) {
+    if (req.headers[`content-type`].search(`application/json`) < 0) {
         return {
             error: `'application/json' content type required`
         };
@@ -121,13 +121,13 @@ const json = function(req) {
 };
 
 const form = function(req) {
-    if (req.headers.content_type.search(`multipart/form-data`) < 0) {
+    if (req.headers[`content-type`].search(`multipart/form-data`) < 0) {
         return {
             error: `'multipart/form-data' content type required`
         };
     };
 
-    const parts = uws.getParts(req.raw, req.headers.content_type);
+    const parts = uws.getParts(req.raw, req.headers[`content-type`]);
 
     if (!parts) {
         return {

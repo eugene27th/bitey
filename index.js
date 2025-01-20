@@ -113,18 +113,9 @@ for (const method of [`get`, `post`, `patch`, `del`]) {
 
             req.url = url;
             req.method = method;
+            req.headers = {};
 
-            req.headers = {
-                origin: req.getHeader(`origin`),
-                cookie: req.getHeader(`cookie`),
-                session: req.getHeader(`session`),
-                challenge: req.getHeader(`challenge`),
-                content_type: req.getHeader(`content-type`),
-                country: req.getHeader(`cf-ipcountry`) || `??`,
-                ip: req.getHeader(`cf-connecting-ip`) || `127.0.0.1`
-            };
-
-            if (config.cors.headers) {
+            if (config.cors?.headers) {
                 for (const header of config.cors.headers) {
                     req.headers[header] = req.getHeader(header);
                 };
@@ -150,7 +141,7 @@ for (const method of [`get`, `post`, `patch`, `del`]) {
                 }
             };
 
-            if (!limiter.allowed(`http_limit:url=${req.url}-ip=${req.headers.ip}`, req.options.limit.attempts, req.options.limit.per)) {
+            if (!limiter.allowed(`http_limit:url=${req.url}-ip=${req.headers[`cf-connecting-ip`]}`, req.options.limit.attempts, req.options.limit.per)) {
                 return res.send({
                     error: `ER_RATE_LIMIT`,
                     message: `${req.options.limit.attempts} attempts per ${req.options.limit.per} seconds`
@@ -224,7 +215,7 @@ for (const method of [`get`, `post`, `patch`, `del`]) {
                     if (config.session && req.options.auth.required !== 0) {
                         req.session = await session.get.cookies(req.headers.cookie || req.headers.session);
 
-                        if (req.session && config.session.termination_new_ip && req.session.ip !== req.headers.ip) {
+                        if (req.session && config.session.termination_new_ip && req.session.ip !== req.headers[`cf-connecting-ip`]) {
                             req.session = null; await session.close(req.session.key);
                         };
 
@@ -384,7 +375,7 @@ app.start = function() {
                     if (config.session) {
                         req.session = await session.get.cookies(req.headers.cookie || req.headers.session || req.headers.wsprotocol);
 
-                        if (req.session && config.session.termination_new_ip && req.session.ip !== req.headers.ip) {
+                        if (req.session && config.session.termination_new_ip && req.session.ip !== req.headers[`cf-connecting-ip`]) {
                             req.session = null; await session.close(req.session.key);
                         };
 
