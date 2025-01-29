@@ -1,4 +1,25 @@
 module.exports = function (app) {
+    app.post(`/options`,
+        {
+            auth: {
+                required: 1, // 1 - требуется, 2 - строго не требуется, 0 - всё равно
+                permissions: [1, 3]
+            },
+            schema: {
+                body: {
+                    type: `application/json`, min: 2, max: 3
+                }
+            },
+            raw: true, // оставить оригинальный raw от пэйлоад в req.raw
+            guard: [15, 10], // лимит на роут [n раз, в n секунд]
+            turnstile: true, // включить проверку cloudflare turnstile
+            log_payload: false // логировать пэйлоад
+        },
+        async function(res, req) {
+            res.send(req);
+        }
+    );
+
     app.post(`/example/:hello/:number/:world`, // /example/something/10/else?cat=orange
         {
             auth: {
@@ -73,6 +94,9 @@ module.exports = function (app) {
                         }
                     }
                 }
+            },
+            log: {
+                payload: false
             }
         },
         async function(res, req) {

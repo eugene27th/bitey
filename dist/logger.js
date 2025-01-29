@@ -1,8 +1,16 @@
+const config = require(`${process.cwd()}/config.json`);
+
 const utils = require(`./utils`);
 const fs = require(`fs/promises`);
 
 
-const log = async function(log, in_console) {
+let stack = ``;
+
+const write = async function() {
+    if (stack === ``) {
+        return false;
+    };
+
     const path = `logs/${utils.date(`m.y`)}`;
 
     try {
@@ -19,30 +27,31 @@ const log = async function(log, in_console) {
         };
     };
 
-    log = `[${utils.time()}] ${log}`;
+    fs.appendFile(`${path}/${utils.date()}.log`, stack);
+
+    stack = ``;
+};
+
+const log = function(text, in_console) {
+    stack += `[${utils.time()}] ${text}\n`;
 
     if (in_console) {
-        console.log(log);
+        console.log(text);
     };
-
-    return await fs.appendFile(`${path}/${utils.date()}.log`, `${log}\n`);
 };
 
-const http = async function(req) {
-    if (!req.options.schema) {
-        return await log(`[HTTP] [${req.method}] [${req.url}] [${req.headers[`cf-connecting-ip`]}] [${req.session?.account.id || `NULL`}]`);
+const http = function(req) {
+    let text = `req > ${req.headers[`cf-connecting-ip`] || `unknown ip`}${req.session?.account.id ? `#${req.session.account.id}` : ``} > http:${req.method}:${req.url}`;
+
+    if (req.options.schema && req.options.log_payload) {
+        text += ` > payload: ${JSON.stringify({ params: req.params, query: req.query, body: req.body })}`;
     };
 
-    if (!req.options.log.body) {
-        return await log(`[HTTP] [${req.method}] [${req.url}] [${req.headers[`cf-connecting-ip`]}] [${req.session?.account.id || `NULL`}] [${JSON.stringify({ params: req.params, query: req.query })}]`);
-    };
-
-    if (!req.options.log.bankeys) {
-        return await log(`[HTTP] [${req.method}] [${req.url}] [${req.headers[`cf-connecting-ip`]}] [${req.session?.account.id || `NULL`}] [${JSON.stringify({ params: req.params, query: req.query, body: req.body })}]`);
-    };
-
-    // todo: bankeys
+    return log(text);
 };
+
+
+setInterval(write, config.logger?.save_interval * 1000 || 10000);
 
 
 module.exports = {

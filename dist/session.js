@@ -41,7 +41,7 @@ const getp = async function(pattern) {
 
     let sessions = {};
 
-    for await (const key of redis.scanIterator({ MATCH: `session:${config.session.name}:${pattern}:*` })) {
+    for await (const key of redis.scanIterator({ MATCH: `session:${config.session.name}:${pattern}` })) {
         sessions[key] = JSON.parse(await redis.get(key));
     };
 
@@ -72,7 +72,7 @@ const create = async function(data) {
     const cookie = `${key}.${crypto.createHmac(`sha256`, config.session.secret).update(key).digest(`base64`).replace(/\=+$/, ``)}`;
 
     await redis.set(`session:${config.session.name}:${key}`, JSON.stringify(data), {
-        EX: config.session.options.age
+        EX: config.session.cookie.age
     });
 
     return cache.set(`session:${key}`, {
@@ -93,7 +93,7 @@ const edit = async function(key, data) {
         ...session,
         ...data
     }), {
-        EX: config.session.options.age
+        EX: config.session.cookie.age
     });
 
     return cache.del([`session:${key}`, `sessions:`]);

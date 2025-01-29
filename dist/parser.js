@@ -250,6 +250,8 @@ const form = function(req) {
             body[part.name] = value;
         };
     };
+
+    return body;
 };
 
 const body = function(req) {

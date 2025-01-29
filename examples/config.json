@@ -1,34 +1,50 @@
 {
     "port": 30000,
 
+    "headers": [
+        "origin",
+        "content-type",
+        "content-length",
+        "host",
+        "user-agent",
+        "accept",
+        "accept-encoding",
+        "connection",
+        "cache-control",
+        "cookie",
+        "session",
+        "cf-connecting-ip",
+        "cf-ipcountry",
+        "challenge"
+    ],
+
     "cors": {
         "origin": [
             "http://127.0.0.1:3000",
             "https://domain.com"
         ],
-        "headers": [
-            "content-type",
-            "content-length",
-            "host",
-            "user-agent",
-            "accept",
-            "accept-encoding",
-            "connection",
-            "cache-control",
-            "cookie",
-            "session",
-            "cf-connecting-ip",
-            "cf-ipcountry",
-            "challenge"
-        ],
         "credentials": true
+    },
+
+    "guard": {
+        "http": {
+            "*": [60, 10],
+            "get": [60, 10],
+            "post": [30, 10],
+            "patch": [10, 10],
+            "del": [10, 10]
+        }
+    },
+
+    "logger": {
+        "save_interval": 10
     },
 
     "session": {
         "name": "bitey-example",
         "secret": "something-secret",
-        "termination_new_ip": true,
-        "options": {
+        "termination_new_ip": false,
+        "cookie": {
             "path": "/",
             "age": 604800,
             "domain": ".domain.name",

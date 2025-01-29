@@ -4,19 +4,15 @@ const crypto = require(`crypto`);
 const date = function(mode = `d.m.y`) {
     const date = new Date();
 
-    if (mode == `ymd`) {
+    if (mode === `ymd`) {
         return date.toISOString().slice(0, 10);
     };
 
-    const d = `${date.getUTCDate()}`.padStart(2, `0`);
-    const m = `${date.getUTCMonth() + 1}`.padStart(2, `0`);
-    const y = date.getUTCFullYear();
-
-    switch (mode) {
-        case `d.m.y`: return `${d}.${m}.${y}`;
-        case `y-m-d`: return `${y}-${m}-${d}`;
-        case `m.y`: return `${m}.${y}`;
+    if (mode === `m.y`) {
+        return `${`${date.getUTCMonth() + 1}`.padStart(2, `0`)}.${date.getUTCFullYear()}`;
     };
+
+    return `${`${date.getUTCDate()}`.padStart(2, `0`)}.${`${date.getUTCMonth() + 1}`.padStart(2, `0`)}.${date.getUTCFullYear()}`;
 };
 
 const time = function() {

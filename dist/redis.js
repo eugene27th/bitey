@@ -10,11 +10,11 @@ const redis = require(`@redis/client`).createClient({
 });
 
 redis.on(`error`, function() {
-    console.log(`[BITEY] [ERROR] Redis connection error.`);
+    console.log(`redis connection error`);
 });
 
 redis.connect().then(async function() {
-    console.log(`[BITEY] [INFO] Redis connection successful.`);
+    console.log(`redis connection successful`);
 });
 
 

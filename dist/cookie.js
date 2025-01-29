@@ -23,9 +23,9 @@ const parse = function(cookie) {
 };
 
 const serialize = function(name, value, options = {}) {
-    if (config.session?.options) {
+    if (config.session?.cookie) {
         options = {
-            ...config.session.options,
+            ...config.session.cookie,
             ...options
         };
     };

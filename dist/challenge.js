@@ -11,7 +11,7 @@ const turnstile = async function(req) {
     if (!req.headers.challenge) {
         return {
             error: `ER_INV_DATA`,
-            message: `turnstile is invalid > header 'challenge' is missing`
+            message: `cloudflare turnstile failed > header 'challenge' is missing`
         };
     };
 
@@ -20,28 +20,14 @@ const turnstile = async function(req) {
         form.append(`response`, req.headers.challenge);
         form.append(`remoteip`, req.headers[`cf-connecting-ip`]);
 
-    const request = await fetch(`https://challenges.cloudflare.com/turnstile/v0/siteverify`, {
-        method: `POST`,
-        body: form
-    });
+    const request = await fetch(`https://challenges.cloudflare.com/turnstile/v0/siteverify`, { method: `POST`, body: form });
 
-    if (request.status != 200) {
-        logger.log(`[CLOUDFLARE TURNSTILE] [FAILED] [${req.method}] [${req.url}] [${req.headers[`cf-connecting-ip`]}] [${request.status}]`);
+    if (request.status !== 200) {
+        logger.log(`turnstile failed > ${request.status} > ${req.headers[`cf-connecting-ip`] || `unknown ip`}${req.session?.account.id ? `#${req.session.account.id}` : ``} > http:${req.method}:${req.url}`);
 
         return {
             error: `ER_CHALLENGE_FAILED`,
-            message: `turnstile is invalid > challenge is failed`
-        };
-    };
-
-    const response = await request.json();
-
-    if (!response.success) {
-        logger.log(`[CLOUDFLARE TURNSTILE] [FAILED] [${req.method}] [${req.url}] [${req.headers[`cf-connecting-ip`]}] [${request[`error-codes`]}]`);
-
-        return {
-            error: `ER_CHALLENGE_FAILED`,
-            message: `turnstile is invalid > challenge is failed`
+            message: `cloudflare turnstile failed`
         };
     };
 
