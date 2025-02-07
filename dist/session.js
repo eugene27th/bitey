@@ -113,6 +113,5 @@ module.exports = {
     },
     create,
     edit,
-    close,
-    account: {}
+    close
 };

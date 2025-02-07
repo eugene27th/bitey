@@ -41,9 +41,9 @@ const log = function(text, in_console) {
 };
 
 const http = function(req) {
-    let text = `req > ${req.headers[`cf-connecting-ip`] || `unknown ip`}${req.session?.account.id ? `#${req.session.account.id}` : ``} > http:${req.method}:${req.url}`;
+    let text = `http:${req.method} > ${req.headers[`cf-connecting-ip`] || `unknown ip`}${req.session?.account.id ? `#${req.session.account.id}` : ``} > ${req.url}`;
 
-    if (req.options.schema && req.options.log_payload) {
+    if (req.options.schema && req.options.config.log_payload) {
         text += ` > payload: ${JSON.stringify({ params: req.params, query: req.query, body: req.body })}`;
     };
 
@@ -51,7 +51,7 @@ const http = function(req) {
 };
 
 
-setInterval(write, config.logger?.save_interval * 1000 || 10000);
+setInterval(write, config.logger?.interval * 1000 || 10000);
 
 
 module.exports = {

@@ -1,30 +1,41 @@
-module.exports = function (app) {
+const middlewareOne = async function(res, req, next) {
+    req.middlewareOne = true;
+    return next();
+};
+
+const middlewareTwo = async function(res, req, next) {
+    req.middlewareTwo = true;
+    return next();
+};
+
+
+module.exports = function(app) {
     app.post(`/options`,
         {
-            auth: {
-                required: 1, // 1 - требуется, 2 - строго не требуется, 0 - всё равно
-                permissions: [1, 3]
+            config: {
+                raw: true, // оставить оригинальный буффер от полезной нагрузки в req.raw
+                guard: [15, 10], // лимит на роут [n раз, в n секунд]
+                turnstile: true, // включить проверку cloudflare turnstile
+                log_payload: false // логировать полезной нагрузки
             },
+            middlewares: [middlewareOne, middlewareTwo], // функции, исполняемые перед финальной
             schema: {
                 body: {
                     type: `application/json`, min: 2, max: 3
                 }
-            },
-            raw: true, // оставить оригинальный raw от пэйлоад в req.raw
-            guard: [15, 10], // лимит на роут [n раз, в n секунд]
-            turnstile: true, // включить проверку cloudflare turnstile
-            log_payload: false // логировать пэйлоад
+            }
         },
         async function(res, req) {
-            res.send(req);
+            console.log(req);
+
+            res.send({
+                hello: `world`
+            });
         }
     );
 
     app.post(`/example/:hello/:number/:world`, // /example/something/10/else?cat=orange
         {
-            auth: {
-                required: 0
-            },
             schema: {
                 params: [
                     {
@@ -77,8 +88,8 @@ module.exports = function (app) {
 
     app.post(`/file/upload`,
         {
-            auth: {
-                required: 0
+            config: {
+                log_payload: false
             },
             schema: {
                 body: {
@@ -95,9 +106,6 @@ module.exports = function (app) {
                     }
                 }
             },
-            log: {
-                payload: false
-            }
         },
         async function(res, req) {
             res.send(req);

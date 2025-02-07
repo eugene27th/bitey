@@ -12,7 +12,7 @@
             }
 */
 
-const exe = await bitey.core.mysql.exe(`
+const exe = await bitey.mysql.exe(`
     SELECT * FROM accounts WHERE username = ?
 `, [`salwador`], { array: true });
 
@@ -33,7 +33,7 @@ const exe = await bitey.core.mysql.exe(`
     SQL выражение: "SELECT * FROM accounts WHERE `username` = 'salwador'".
 */
 
-const get = await bitey.core.mysql.get(`accounts`, {
+const get = await bitey.mysql.get(`accounts`, {
     username: `salwador`
 }, {
     array: true
@@ -56,7 +56,7 @@ const get = await bitey.core.mysql.get(`accounts`, {
     SQL выражение: "INSERT INTO accounts SET `username` = 'salwador', `edited` = '1234567890' ON DUPLICATE KEY UPDATE `edited` = '1234567890'".
 */
 
-const ins = await bitey.core.mysql.ins(`accounts`, {
+const ins = await bitey.mysql.ins(`accounts`, {
     username: `salwador`,
     edited: `1234567890`
 }, {
@@ -78,7 +78,7 @@ const ins = await bitey.core.mysql.ins(`accounts`, {
     SQL выражение: "UPDATE accounts SET `username` = 'salwadoriche' WHERE `id` = '1'".
 */
 
-const upd = await bitey.core.mysql.upd(`accounts`, { id: 1 }, {
+const upd = await bitey.mysql.upd(`accounts`, { id: 1 }, {
     username: `salwadoriche`
 });
 
@@ -95,4 +95,4 @@ const upd = await bitey.core.mysql.upd(`accounts`, { id: 1 }, {
     SQL выражение: "DELETE FROM accounts WHERE `id` = '1'".
 */
 
-const del = await bitey.core.mysql.del(`accounts`, { id: 1 });
+const del = await bitey.mysql.del(`accounts`, { id: 1 });

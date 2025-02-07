@@ -1,6 +1,6 @@
 /*
     Возвращаемые значения: true - проверка пройдена, false - не пройдена.
-    Описание ошибки в `bitey.core.validator.error()`.
+    Описание ошибки в `bitey.validator.error()`.
 
     Типы:
         string - любая строка.
@@ -39,7 +39,7 @@
     Проверка объекта.
 */
 
-if (!bitey.core.validator.json({
+if (!bitey.validator.json({
     value_enum: `salwador`,
     value_something: null,
     value_pattern: `he-he`,
@@ -83,7 +83,7 @@ if (!bitey.core.validator.json({
         }
     }
 })) {
-    console.log(`json error -> `, bitey.core.validator.error());
+    console.log(`json error -> `, bitey.validator.error());
 };
 
 
@@ -91,7 +91,7 @@ if (!bitey.core.validator.json({
     Проверка массива.
 */
 
-if (!bitey.core.validator.array([
+if (!bitey.validator.array([
     {
         name: `salwador`,
         aboba: true
@@ -114,7 +114,7 @@ if (!bitey.core.validator.array([
         }
     }
 })) {
-    console.log(`array error -> `, bitey.core.validator.error());
+    console.log(`array error -> `, bitey.validator.error());
 };
 
 
@@ -122,8 +122,8 @@ if (!bitey.core.validator.array([
     Проверка значения.
 */
 
-if (!bitey.core.validator.value(`salwador-aboba`, {
+if (!bitey.validator.value(`salwador-aboba`, {
     type: `string`, min: 1, max: 64
 })) {
-    console.log(`value error -> `, bitey.core.validator.error());
+    console.log(`value error -> `, bitey.validator.error());
 };

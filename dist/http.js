@@ -3,7 +3,6 @@ const config = require(`${process.cwd()}/config.json`);
 const guard = require(`./guard`);
 const parser = require(`./parser`);
 const logger = require(`./logger`);
-const session = require(`./session`);
 const challenge = require(`./challenge`);
 
 
@@ -109,26 +108,29 @@ module.exports = function(app) {
                 req.method = method;
                 req.headers = {};
 
+                req.options = {
+                    config: {
+                        raw: false,
+                        guard: null,
+                        turnstile: false,
+                        log_payload: true,
+                        ...options.config
+                    },
+                    middlewares: options.middlewares || [],
+                    schema: options.schema
+                };
+
                 if (config.headers) {
-                    for (const header of config.headers) {
-                        req.headers[header] = req.getHeader(header);
+                    for (const name of config.headers) {
+                        const header = req.getHeader(name);
+
+                        if (header.length > 0) {
+                            req.headers[name] = header;
+                        };
                     };
                 };
 
-                req.options = {
-                    auth: {
-                        required: 1,
-                        permissions: [],
-                        ...options.auth
-                    },
-                    schema: options.schema,
-                    raw: options.raw || false,
-                    guard: options.guard || null,
-                    turnstile: options.turnstile || false,
-                    log_payload: options.log_payload || true
-                };
-
-                if (config.guard || req.options.guard) {
+                if (config.guard || req.options.config.guard) {
                     const result = guard.http(req);
 
                     if (result.error) {
@@ -188,11 +190,11 @@ module.exports = function(app) {
                             };
                         };
 
-                        if (!req.options.raw && req.raw) {
+                        if (!req.options.config.raw && req.raw) {
                             delete req.raw;
                         };
 
-                        if (config.cloudflare?.turnstile && req.options.turnstile) {
+                        if (config.cloudflare?.turnstile && req.options.config.turnstile) {
                             const result = await challenge.turnstile(req);
 
                             if (result.error) {
@@ -203,60 +205,35 @@ module.exports = function(app) {
                             };
                         };
 
-                        if (config.session && req.options.auth.required !== 0) {
-                            req.session = await session.get.cookies(req.headers.cookie || req.headers.session);
-
-                            if (req.session && config.session.termination_new_ip && req.session.ip !== req.headers[`cf-connecting-ip`]) {
-                                req.session = null; await session.close(req.session.key);
-                            };
-
-                            if (req.session) {
-                                req.session.account = await session.account.get(`id`, req.session.id);
-
-                                if (!req.session.account) {
-                                    await session.close(req.session.key);
-
-                                    return res.send({
-                                        error: `ER_SESSION_RELOAD_NEEDED`
-                                    }, 400);
-                                };
-
-                                if (req.options.auth.required === 2) {
-                                    return res.send({
-                                        error: `ER_ALR_AUTH`
-                                    }, 400);
-                                };
-
-                                if (req.options.auth.permissions.length > 0 && !req.options.auth.permissions.includes(req.session.account.permission)) {
-                                    return res.send({
-                                        error: `ER_ACS_DENIED`
-                                    }, 403);
-                                };
-                            } else if (req.options.auth.required === 1) {
-                                return res.send({
-                                    error: `ER_NOT_AUTH`
-                                }, 401);
-                            };
-                        };
-
                         logger.http(req);
 
-                        if (res.aborted) {
-                            return false;
+                        const callbacks = req.options.middlewares.concat(callback);
+
+                        let cstep = 0;
+                        const mstep = callbacks.length;
+
+                        const next = function() {
+                            if (res.aborted) {
+                                return false;
+                            };
+
+                            if (cstep < mstep) {
+                                res.cork(async function() {
+                                    try {
+                                        return await callbacks[cstep++](res, req, next);
+                                    } catch (err) {
+                                        console.log(`err from http callback -> `, err);
+
+                                        return res.send({
+                                            error: err.code || `ER_UNEXPECTED`,
+                                            ...err.extra
+                                        }, err.status || 500);
+                                    };
+                                });
+                            };
                         };
 
-                        res.cork(async function() {
-                            try {
-                                return await callback(res, req);
-                            } catch (err) {
-                                console.log(`err from http callback -> `, err);
-
-                                return res.send({
-                                    error: err.code || `ER_UNEXPECTED`,
-                                    ...err.extra
-                                }, err.status || 500);
-                            };
-                        });
+                        return next();
                     };
                 });
             });

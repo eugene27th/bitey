@@ -32,12 +32,12 @@ const http = function(req) {
         };
     };
 
-    if (req.options.guard && !limit(`http_route:url=${req.url}-ip=${req.headers[`cf-connecting-ip`] || `unknown`}`, req.options.guard)) {
+    if (req.options.config.guard && !limit(`http_route:url=${req.url}-ip=${req.headers[`cf-connecting-ip`] || `unknown`}`, req.options.config.guard)) {
         return {
-            error: `${req.options.guard[0]} attempts per ${req.options.guard[1]} seconds on this route`
+            error: `${req.options.config.guard[0]} attempts per ${req.options.config.guard[1]} seconds on this route`
         };
     };
-    
+
     return true;
 };
 

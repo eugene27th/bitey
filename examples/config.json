@@ -37,13 +37,12 @@
     },
 
     "logger": {
-        "save_interval": 10
+        "interval": 10
     },
 
     "session": {
         "name": "bitey-example",
         "secret": "something-secret",
-        "termination_new_ip": false,
         "cookie": {
             "path": "/",
             "age": 604800,
