@@ -13,12 +13,15 @@ module.exports = function(app) {
     app.post(`/options`,
         {
             config: {
-                raw: true, // оставить оригинальный буффер от полезной нагрузки в req.raw
-                guard: [15, 10], // лимит на роут [n раз, в n секунд]
-                turnstile: true, // включить проверку cloudflare turnstile
-                log_payload: false // логировать полезной нагрузки
+                raw: true, // set original buffer payload in req.raw
+                guard: [15, 10], // limit on route [n attempts, in n seconds]
+                turnstile: true, // turn on cloudflare turnstile challenge
+                log: {
+                    headers: true,
+                    payload: false
+                }
             },
-            middlewares: [middlewareOne, middlewareTwo], // функции, исполняемые перед финальной
+            middlewares: [middlewareOne, middlewareTwo], // executed before final function
             schema: {
                 body: {
                     type: `application/json`, min: 2, max: 3
@@ -49,7 +52,7 @@ module.exports = function(app) {
                     }
                 ],
                 query: {
-                    properties: {
+                    entries: {
                         cat: {
                             type: `string`, min: 1, max: 128
                         }
@@ -57,7 +60,7 @@ module.exports = function(app) {
                 },
                 body: {
                     type: `application/json`, min: 2, max: 3,
-                    properties: {
+                    entries: {
                         hello: {
                             required: true,
                             type: `string`, min: 1, max: 128
@@ -70,7 +73,7 @@ module.exports = function(app) {
                         },
                         salwa: {
                             type: `object`,
-                            properties: {
+                            entries: {
                                 balbes: {
                                     required: true,
                                     type: `boolean`
@@ -89,12 +92,14 @@ module.exports = function(app) {
     app.post(`/file/upload`,
         {
             config: {
-                log_payload: false
+                log: {
+                    payload: false
+                }
             },
             schema: {
                 body: {
                     type: `multipart/form-data`,
-                    properties: {
+                    entries: {
                         author: {
                             type: `string`, min: 1, max: 128
                         },

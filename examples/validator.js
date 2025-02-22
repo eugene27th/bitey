@@ -1,42 +1,41 @@
 /*
-    Возвращаемые значения: true - проверка пройдена, false - не пройдена.
-    Описание ошибки в `bitey.validator.error()`.
+    (checked value, schema)
+    return boolean
+    error message in bitey.validator.error()
 
-    Типы:
-        string - любая строка.
-        boolean - boolean, 'true' (string), 'false' (string).
-        int, int8, int16, int32 - целые числа.
-        uint, uint8, uint16, uint32 - целые числа больше нуля.
-        float - с плавающей запятой.
-        enum - одно из предложенных значений. можно указать как и свой массив с значениями, так и название заготовленного (смотреть файл /core/validator.js > enums).
-        pattern - проверка pattern. можно указать как свой regex паттерн, так и название заготовленного (смотреть файл /core/validator.js > patterns).
-        object - json объект.
-        array - массив.
+    types:
+        string - any string
+        boolean - boolean || `true` (string) || `false` (string)
+        int, int8, int16, int32 - int number
+        uint, uint8, uint16, uint32 - int number more than zero
+        float - float number
+        enum - array with available values
+        pattern - regex pattern
+        object - json object
+        array - array
 
-    Параметры:
-        общие:
-            required - значение требуется.
-            min - минимальное значение. в случае с числами - значение, строками - длина, массивами - кол-во элементов, объектами - кол-во ключей.
-            max - максимальное значение. в случае с числами - значение, строками - длина, массивами - кол-во элементов, объектами - кол-во ключей.
+    options:
+        general:
+            required
+            min - min number || min string length || min array elements || min json object keys
+            max - max number || max string length || max array elements || max json object keys
 
         enum:
-            enum - свой массив с значениями или название заготовленного.
+            enum - own or key from `validator.js > enums`
 
         pattern:
-            pattern - свой regex паттерн или название заготовленного.
+            pattern - own or key from `validator.js > patterns`
+
+        value:
+            string (false) - if type = int, int8, int16, int32, uint, uint8, uint16, uint32, float. allows a number in a string 
 
         array:
-            duplicates - повторение одинаковых элементов в массиве. true - разрешено, false - запрещено. по-умолчанию: true.
-            items - описание разрешённых значений в массиве (смотреть в примере).
-        
+            duplicates (false) - duplicate identical elements in an array. true - available, false - not available
+            items - array schema
+
         object:
-            null - разрешён null.
-            properties - объект, в котором указываются ключи проверяемого объекта (смотреть в примере).
-*/
-
-
-/*
-    Проверка объекта.
+            null - null available
+            entries - json entries
 */
 
 if (!bitey.validator.json({
@@ -52,7 +51,7 @@ if (!bitey.validator.json({
     }
 }, {
     min: 3,
-    properties: {
+    entries: {
         value_enum: {
             required: true,
             type: `enum`, enum: [`salwador`, `eugene`]
@@ -67,12 +66,12 @@ if (!bitey.validator.json({
         value_array: {
             type: `array`, min: 1, max: 3,
             items: {
-                type: `int`, min: 1, max: 32
+                type: `int`, min: 1, max: 32, string: true
             }
         },
         value_object: {
             type: `object`, min: 1,
-            properties: {
+            entries: {
                 hehe: {
                     type: `boolean`
                 },
@@ -87,10 +86,6 @@ if (!bitey.validator.json({
 };
 
 
-/*
-    Проверка массива.
-*/
-
 if (!bitey.validator.array([
     {
         name: `salwador`,
@@ -103,8 +98,8 @@ if (!bitey.validator.array([
 ], {
     min: 1, max: 2, duplicates: false,
     items: {
-        type: `object`,  min: 1,
-        properties: {
+        type: `object`, min: 1,
+        entries: {
             name: {
                 type: `string`, min: 1, max: 32
             },
@@ -117,10 +112,6 @@ if (!bitey.validator.array([
     console.log(`array error -> `, bitey.validator.error());
 };
 
-
-/*
-    Проверка значения.
-*/
 
 if (!bitey.validator.value(`salwador-aboba`, {
     type: `string`, min: 1, max: 64

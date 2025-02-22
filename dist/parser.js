@@ -40,7 +40,7 @@ const query = function(req) {
             };
         };
 
-        for (const property of Object.values(req.options.schema.query.properties)) {
+        for (const property of Object.values(req.options.schema.query.entries)) {
             if (property.required) {
                 return {
                     error: `query string is missing`
@@ -111,7 +111,7 @@ const json = function(req) {
         };
     };
 
-    if (req.options.schema.body.properties && !validator.json(body, req.options.schema.body)) {
+    if (req.options.schema.body.entries && !validator.json(body, req.options.schema.body)) {
         return {
             error: `body raw is invalid > ${validator.error()}`
         };
@@ -147,7 +147,7 @@ const form = function(req) {
         };
     };
 
-    for (const [key, property] of Object.entries(req.options.schema.body.properties)) {
+    for (const [key, property] of Object.entries(req.options.schema.body.entries)) {
         if (property.required && parts.findIndex(function(x) { return key === x.name }) < 0) {
             return {
                 error: `body raw is invalid > '${key}' is missing`
@@ -158,7 +158,7 @@ const form = function(req) {
     let body = {};
 
     for (const part of parts) {
-        if (!req.options.schema.body.properties[part.name]) {
+        if (!req.options.schema.body.entries[part.name]) {
             return {
                 error: `body raw is invalid > '${part.name}' is not required`
             };
@@ -166,7 +166,7 @@ const form = function(req) {
 
         const is_file = typeof part.filename !== `undefined`;
 
-        if (req.options.schema.body.properties[part.name].type === `file`) {
+        if (req.options.schema.body.entries[part.name].type === `file`) {
             if (!is_file) {
                 return {
                     error: `body raw is invalid > '${part.name}' is invalid > file required`
@@ -179,15 +179,15 @@ const form = function(req) {
                 };
             };
 
-            if (part.data.byteLength > req.options.schema.body.properties[part.name].size) {
+            if (part.data.byteLength > req.options.schema.body.entries[part.name].size) {
                 return {
-                    error: `body raw is invalid > '${part.name}' is invalid > 'file size < ${req.options.schema.body.properties[part.name].size} b' required`
+                    error: `body raw is invalid > '${part.name}' is invalid > 'file size < ${req.options.schema.body.entries[part.name].size} b' required`
                 };
             };
 
-            if (req.options.schema.body.properties[part.name].mimetypes && !req.options.schema.body.properties[part.name].mimetypes.includes(part.type)) {
+            if (req.options.schema.body.entries[part.name].mimetypes && !req.options.schema.body.entries[part.name].mimetypes.includes(part.type)) {
                 return {
-                    error: `body raw is invalid > '${part.name}' is invalid > '${req.options.schema.body.properties[part.name].mimetypes.join(` / `)}' mimetype required`
+                    error: `body raw is invalid > '${part.name}' is invalid > '${req.options.schema.body.entries[part.name].mimetypes.join(` / `)}' mimetype required`
                 };
             };
 
@@ -211,16 +211,16 @@ const form = function(req) {
                 buffer: Buffer.from(part.data)
             };
 
-            if (req.options.schema.body.properties[part.name].hash) {
+            if (req.options.schema.body.entries[part.name].hash) {
                 file.hash = crypto.createHash(`md5`).update(file.buffer).digest(`hex`);
             };
 
             if (!body[part.name]) {
                 body[part.name] = [file];
             } else {
-                if (body[part.name].length >= req.options.schema.body.properties[part.name].max) {
+                if (body[part.name].length >= req.options.schema.body.entries[part.name].max) {
                     return {
-                        error: `body raw is invalid > '${part.name}' is invalid > 'length < ${req.options.schema.body.properties[part.name].max}' required`
+                        error: `body raw is invalid > '${part.name}' is invalid > 'length < ${req.options.schema.body.entries[part.name].max}' required`
                     };
                 };
 
@@ -241,7 +241,7 @@ const form = function(req) {
                 };
             };
 
-            if (!validator.value(value, req.options.schema.body.properties[part.name])) {
+            if (!validator.value(value, req.options.schema.body.entries[part.name])) {
                 return {
                     error: `body raw is invalid > ${validator.error()}`
                 };
@@ -262,7 +262,7 @@ const body = function(req) {
             };
         };
 
-        for (const property of Object.values(req.options.schema.body.properties)) {
+        for (const property of Object.values(req.options.schema.body.entries)) {
             if (property.required) {
                 return {
                     error: `body raw is missing`
@@ -337,8 +337,8 @@ const message = function(message, isBinary) {
             };
         };
 
-        for (const properties of Object.values(action.options.schema.properties)) {
-            if (properties.required) {
+        for (const value of Object.values(action.options.schema.entries)) {
+            if (value.required) {
                 return {
                     message: `data is missing`
                 };

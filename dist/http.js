@@ -11,7 +11,6 @@ module.exports = function(app) {
         const origin = req.getHeader(`origin`);
 
         res.writeHeader(`Vary`, `Origin`);
-        res.writeHeader(`Content-Length`, `0`);
         res.writeHeader(`Access-Control-Allow-Methods`, `GET,POST,PATCH,DELETE`);
 
         if (config.cors?.origin && config.cors.origin.includes(origin)) {
@@ -110,11 +109,13 @@ module.exports = function(app) {
 
                 req.options = {
                     config: {
-                        raw: false,
-                        guard: null,
-                        turnstile: false,
-                        log_payload: true,
-                        ...options.config
+                        raw: options.config?.raw !== undefined ? options.config.raw : false,
+                        guard: options.config?.guard !== undefined ? options.config.guard : null,
+                        turnstile: options.config?.turnstile !== undefined ? options.config.turnstile : false,
+                        log: {
+                            headers: options.config?.log?.headers !== undefined ? options.config.log?.headers : false,
+                            payload: options.config?.log?.payload !== undefined ? options.config.log?.payload : true
+                        }
                     },
                     middlewares: options.middlewares || [],
                     schema: options.schema

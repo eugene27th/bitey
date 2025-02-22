@@ -20,7 +20,6 @@ module.exports = {
     error: require(`./dist/error`),
     logger: require(`./dist/logger`),
     mysql: require(`./dist/mysql`),
-    password: require(`./dist/password`),
     redis: require(`./dist/redis`),
     session: require(`./dist/session`),
     utils: require(`./dist/utils`),
