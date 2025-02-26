@@ -40,10 +40,12 @@ const query = function(req) {
             };
         };
 
-        for (const property of Object.values(req.options.schema.query.entries)) {
-            if (property.required) {
-                return {
-                    error: `query string is missing`
+        if (req.options.schema.query.entries) {
+            for (const property of Object.values(req.options.schema.query.entries)) {
+                if (property.required) {
+                    return {
+                        error: `query string is missing`
+                    };
                 };
             };
         };
@@ -70,7 +72,7 @@ const query = function(req) {
         query[key] = value;
     };
 
-    if (!validator.json(query, req.options.schema.query)) {
+    if (req.options.schema.query.entries && !validator.json(query, req.options.schema.query)) {
         return {
             error: `query string is invalid > ${validator.error()}`
         };

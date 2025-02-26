@@ -18,6 +18,7 @@ module.exports = {
     cache: require(`./dist/cache`),
     cookie: require(`./dist/cookie`),
     error: require(`./dist/error`),
+    fetch: require(`./dist/fetch`),
     logger: require(`./dist/logger`),
     mysql: require(`./dist/mysql`),
     redis: require(`./dist/redis`),
