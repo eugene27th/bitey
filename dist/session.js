@@ -90,7 +90,7 @@ const edit = async function(key, data) {
     };
 
     await redis.set(`session:${config.session.name}:${key}`, JSON.stringify({
-        ...session,
+        ...JSON.parse(session),
         ...data
     }), {
         EX: config.session.cookie.age

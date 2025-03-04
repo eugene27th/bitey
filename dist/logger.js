@@ -41,7 +41,7 @@ const log = function(text, in_console) {
 };
 
 const http = function(req) {
-    let text = `http:${req.method} > ${req.headers[`cf-connecting-ip`] || `unknown ip`}${req.session?.account.id ? `#${req.session.account.id}` : ``} > ${req.url}`;
+    let text = `http:${req.method} > ${req.headers[`cf-connecting-ip`] || `unknown ip`} > ${req.url}`;
 
     if (req.options.config.log?.headers) {
         text += ` > headers: ${JSON.stringify(req.headers)}`;

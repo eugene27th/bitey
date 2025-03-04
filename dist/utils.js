@@ -36,22 +36,18 @@ const uuidts = function() {
 };
 
 const string = function(length, tocase) {
-    const chars = `QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789`;
+    let chars = `QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789`;
+
+    if (tocase === `up`) {
+        chars = `QWERTYUIOPASDFGHJKLZXCVBNM0123456789`;
+    } else if (tocase === `low`) {
+        chars = `qwertyuiopasdfghjklzxcvbnm0123456789`;
+    };
 
     let result = ``;
 
     for (let i = 0; i < length; i++) {
         result += chars.charAt(Math.floor(Math.random() * chars.length));
-    };
-
-    if (tocase) {
-        if (tocase === `up`) {
-            return result.toUpperCase();
-        };
-
-        if (tocase === `low`) {
-            return result.toLowerCase();
-        };
     };
 
     return result;

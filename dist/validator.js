@@ -8,14 +8,15 @@ const patterns = {
     datetime: `[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]`,
     timestamp: `^[0-9]{10}$`,
     urn: /^[a-zA-Z0-9_-]+$/,
-    url: `^((http|https):\/\/)?(www\.)?([A-Za-zА-Яа-я0-9]{1}[A-Za-zА-Яа-я0-9\-]*\.?)*\.{1}[A-Za-zА-Яа-я0-9-]{2,8}(\/([\w#!:.?+=&%@!\-\/])*)?`,
+    url: /^(?:https?|ftp):\/\/(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u{00a1}-\u{ffff}]+-)*[a-z0-9\u{00a1}-\u{ffff}]+)(?:\.(?:[a-z0-9\u{00a1}-\u{ffff}]+-)*[a-z0-9\u{00a1}-\u{ffff}]+)*(?:\.(?:[a-z\u{00a1}-\u{ffff}]{2,})))(?::\d{2,5})?(?:\/[^\s]*)?$/iu,
     domain: `(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]`,
     uuid: `^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$`,
     uuidts: `^[0-9a-f]{13}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{17}$`,
     filename: `^[0-9a-f]{13}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{17}.(png|jpeg|jpg|webp|gif|zip|txt)$`,
-    email: `^[a-zA-Z0-9_'+*/^&=?~{}\-](\.?[a-zA-Z0-9_'+*/^&=?~{}\-])*\@((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(\:\d{1,3})?)|(((([a-zA-Z0-9][a-zA-Z0-9\-]+[a-zA-Z0-9])|([a-zA-Z0-9]{1,2}))[\.]{1})+([a-zA-Z]{2,6})))$`,
+    email: /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i,
     phone: `^[0-9]{6,12}$`,
-    ipv4: `^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$`
+    ipv4: /^(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/,
+    ipv6: /^((([0-9a-f]{1,4}:){7}([0-9a-f]{1,4}|:))|(([0-9a-f]{1,4}:){6}(:[0-9a-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9a-f]{1,4}:){5}(((:[0-9a-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9a-f]{1,4}:){4}(((:[0-9a-f]{1,4}){1,3})|((:[0-9a-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){3}(((:[0-9a-f]{1,4}){1,4})|((:[0-9a-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){2}(((:[0-9a-f]{1,4}){1,5})|((:[0-9a-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){1}(((:[0-9a-f]{1,4}){1,6})|((:[0-9a-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9a-f]{1,4}){1,7})|((:[0-9a-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))$/i
 };
 
 const enums = {
@@ -383,44 +384,46 @@ const f_json = function(json, schema) {
         return false;
     };
 
-    for (const [key, entries] of Object.entries(schema.entries)) {
-        if (entries.required && json[key] !== 0 && !json[key]) {
-            error = `'${key}' is missing`;
-            return false;
+    if (schema.entries) {
+        for (const [key, entries] of Object.entries(schema.entries)) {
+            if (entries.required && json[key] !== 0 && !json[key]) {
+                error = `'${key}' is missing`;
+                return false;
+            };
         };
-    };
-
-    for (const [key, value] of Object.entries(json)) {
-        if (!schema.entries[key]) {
-            error = `'${key}' is not required`;
-            return false;
-        };
-
-        if (schema.entries[key].null && value === null) {
-            continue;
-        };
-
-        if (schema.entries[key].type === `array`) {
-            if (!f_array(value, schema.entries[key])) {
+    
+        for (const [key, value] of Object.entries(json)) {
+            if (!schema.entries[key]) {
+                error = `'${key}' is not required`;
+                return false;
+            };
+    
+            if (schema.entries[key].null && value === null) {
+                continue;
+            };
+    
+            if (schema.entries[key].type === `array`) {
+                if (!f_array(value, schema.entries[key])) {
+                    error = `'${key}' is invalid > ${error}`;
+                    return false;
+                };
+    
+                continue;
+            };
+    
+            if (schema.entries[key].type === `object`) {
+                if (!f_json(value, schema.entries[key])) {
+                    error = `'${key}' is invalid > ${error}`;
+                    return false;
+                };
+    
+                continue;
+            };
+    
+            if (!f_value(value, schema.entries[key])) {
                 error = `'${key}' is invalid > ${error}`;
                 return false;
             };
-
-            continue;
-        };
-
-        if (schema.entries[key].type === `object`) {
-            if (!f_json(value, schema.entries[key])) {
-                error = `'${key}' is invalid > ${error}`;
-                return false;
-            };
-
-            continue;
-        };
-
-        if (!f_value(value, schema.entries[key])) {
-            error = `'${key}' is invalid > ${error}`;
-            return false;
         };
     };
 
