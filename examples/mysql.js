@@ -2,7 +2,9 @@
     (sql query, values, options)
 
     options:
-        - array: false // always return result in array
+        - array: false // default: false | always return result in array, even if there is no value or its length is 1
+        - nesting: true // default: true | nesting keys from { "one.two.three": "value" } to { "one": { "two": { "three": "value" } } }
+        - boolean: true // default: true | transform "true" and "false" enums to boolean
 
     example:
         SELECT * FROM accounts WHERE `username` = 'salwador'
@@ -18,7 +20,9 @@ const exe = await bitey.mysql.exe(`SELECT * FROM accounts WHERE username = ?`, [
         { key: `value` } // where key = value
 
     options:
-        - array: false // always return result in array
+        - array: false // default: false | always return result in array, even if there is no value or its length is 1
+        - nesting: true // default: true | nesting keys from { "one.two.three": "value" } to { "one": { "two": { "three": "value" } } }
+        - boolean: true // default: true | transform "true" and "false" enums to boolean
 
     example:
         SELECT * FROM accounts WHERE `username` = 'salwador'
