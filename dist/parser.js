@@ -289,80 +289,8 @@ const body = function(req) {
 };
 
 
-const message = function(message, isBinary) {
-    message = isBinary ? message.split(`::`) : Buffer.from(message).toString().split(`::`);
-
-    let result = {
-        ident: message[0],
-        action: message[1],
-        data: message[2] || null
-    };
-
-    if (!result.ident || !validator.value(result.ident, { type: `uint32` })) {
-        return {
-            error: `ident is invalid > ${validator.error()}`
-        };
-    };
-
-    if (!result.action || !validator.value(result.action, { type: `string`, min: 1, max: 128 })) {
-        return {
-            error: `action is invalid > ${validator.error()}`
-        };
-    };
-
-    const action = app.ws_actions[url][result.action];
-
-    if (!action) {
-        return {
-            error: `action not found`
-        };
-    };
-
-    if (result.data) {
-        try {
-            result.data = JSON.parse(result.data);
-        } catch (err) {
-            return {
-                error: `data is invalid`
-            };
-        };
-    };
-
-    if (!action.options.schema) {
-        return result;
-    };
-
-    if (!result.data) {
-        if (action.options.schema.min) {
-            return {
-                message: `data is missing`
-            };
-        };
-
-        for (const value of Object.values(action.options.schema.entries)) {
-            if (value.required) {
-                return {
-                    message: `data is missing`
-                };
-            };
-        };
-
-        return result;
-    };
-
-    if (!validator.json(result.data, action.options.schema)) {
-        return {
-            message: `data is invalid > ${validator.error()}`
-        };
-    };
-
-    return result;
-};
-
-
 module.exports = {
     params,
     query,
-    body,
-    message
+    body
 };

@@ -16,13 +16,11 @@ app.start = function() {
 module.exports = {
     app,
     cache: require(`./dist/cache`),
-    cookie: require(`./dist/cookie`),
     error: require(`./dist/error`),
     fetch: require(`./dist/fetch`),
     logger: require(`./dist/logger`),
     mysql: require(`./dist/mysql`),
     redis: require(`./dist/redis`),
-    session: require(`./dist/session`),
     utils: require(`./dist/utils`),
     validator: require(`./dist/validator`)
 };

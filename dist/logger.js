@@ -11,7 +11,7 @@ const write = async function() {
         return false;
     };
 
-    const path = `logs/${utils.date(`m.y`)}`;
+    const path = `logs/${utils.get.date(`m.y`)}`;
 
     try {
         await fs.access(path);
@@ -27,13 +27,13 @@ const write = async function() {
         };
     };
 
-    fs.appendFile(`${path}/${utils.date()}.log`, stack);
+    fs.appendFile(`${path}/${utils.get.date()}.log`, stack);
 
     stack = ``;
 };
 
 const log = function(text, in_console) {
-    stack += `[${utils.time()}] ${text}\n`;
+    stack += `[${utils.get.time()}] ${text}\n`;
 
     if (in_console) {
         console.log(text);

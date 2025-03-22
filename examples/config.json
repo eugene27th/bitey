@@ -40,18 +40,6 @@
         "interval": 10
     },
 
-    "session": {
-        "name": "bitey-example",
-        "secret": "something-secret",
-        "cookie": {
-            "path": "/",
-            "age": 604800,
-            "domain": ".domain.name",
-            "samesite": "None",
-            "secure": true
-        }
-    },
-
     "mysql": {
         "host": "127.0.0.1",
         "user": "username",
