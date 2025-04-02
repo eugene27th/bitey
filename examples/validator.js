@@ -27,7 +27,7 @@
             pattern - own or key from `validator.js > patterns`
 
         value:
-            string (false) - if type = int, int8, int16, int32, uint, uint8, uint16, uint32, float. allows a number in a string 
+            string (false) - if type = boolean, int, int8, int16, int32, uint, uint8, uint16, uint32, float. allows a value in a string 
 
         array:
             duplicates (false) - duplicate identical elements in an array. true - available, false - not available

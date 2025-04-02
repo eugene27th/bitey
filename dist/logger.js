@@ -11,7 +11,7 @@ const write = async function() {
         return false;
     };
 
-    const path = `logs/${utils.get.date(`m.y`)}`;
+    const path = `${config.logger.folder}/${utils.get.date(`m.y`)}`;
 
     try {
         await fs.access(path);

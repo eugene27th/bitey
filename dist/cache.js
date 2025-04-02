@@ -2,7 +2,7 @@ let storage = {};
 const dttl = 7200;
 
 
-const spath = function(key) {
+const parse = function(key) {
     let folder = `default`;
     const path = key.split(`:`);
 
@@ -43,7 +43,7 @@ const set = function(keys, value, ttl = dttl) {
     };
 
     for (let i = 0; i < keys.length; i++) {
-        const { key, folder } = spath(keys[i]);
+        const { key, folder } = parse(keys[i]);
 
         if (storage[folder]) {
             storage[folder][key] = data;
@@ -58,7 +58,7 @@ const set = function(keys, value, ttl = dttl) {
 };
 
 const get = function(key) {
-    const path = spath(key);
+    const path = parse(key);
 
     if (!storage[path.folder]) {
         return null;
@@ -88,7 +88,7 @@ const del = function(keys, deleq = false) {
     };
 
     for (const key of keys) {
-        const path = spath(key);
+        const path = parse(key);
 
         if (!storage[path.folder]) {
             continue;

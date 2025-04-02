@@ -44,9 +44,16 @@ const f_value = function(value, schema) {
 
     switch (schema.type) {
         case `boolean`: {
-            if (typeof value !== `boolean` && value !== `true` && value !== `false`) {
-                error = `'boolean' required`;
-                return false;
+            if (typeof value !== `boolean`) {
+                if (!schema.string) {
+                    error = `'boolean' required`;
+                    return false;
+                };
+
+                if (value !== `true` && value !== `false`) {
+                    error = `'boolean' required`;
+                    return false;
+                };
             };
 
             break;
@@ -79,9 +86,7 @@ const f_value = function(value, schema) {
                 return false;
             };
 
-            value = parseInt(value);
-
-            if (isNaN(value) || value % 1 !== 0) {
+            if (isNaN(parseInt(value)) || value % 1 !== 0) {
                 error = `'int' required`;
                 return false;
             };
@@ -105,9 +110,7 @@ const f_value = function(value, schema) {
                 return false;
             };
 
-            value = parseInt(value);
-
-            if (isNaN(value) || value % 1 !== 0 || value < 0) {
+            if (isNaN(parseInt(value)) || value % 1 !== 0 || value < 0) {
                 error = `'uint' required`;
                 return false;
             };
@@ -126,9 +129,7 @@ const f_value = function(value, schema) {
                 return false;
             };
 
-            value = parseInt(value);
-
-            if (isNaN(value) || value % 1 !== 0 || value < -128 || value > 128) {
+            if (isNaN(parseInt(value)) || value % 1 !== 0 || value < -128 || value > 128) {
                 error = `'int8' required`;
                 return false;
             };
@@ -142,9 +143,7 @@ const f_value = function(value, schema) {
                 return false;
             };
 
-            value = parseInt(value);
-
-            if (isNaN(value) || value % 1 !== 0 || value < 0 || value > 256) {
+            if (isNaN(parseInt(value)) || value % 1 !== 0 || value < 0 || value > 256) {
                 error = `'uint8' required`;
                 return false;
             };
@@ -158,9 +157,7 @@ const f_value = function(value, schema) {
                 return false;
             };
 
-            value = parseInt(value);
-
-            if (isNaN(value) || value % 1 !== 0 || value < -32768 || value > 32768) {
+            if (isNaN(parseInt(value)) || value % 1 !== 0 || value < -32768 || value > 32768) {
                 error = `'int16' required`;
                 return false;
             };
@@ -174,9 +171,7 @@ const f_value = function(value, schema) {
                 return false;
             };
 
-            value = parseInt(value);
-
-            if (isNaN(value) || value % 1 !== 0 || value < 0 || value > 65536) {
+            if (isNaN(parseInt(value)) || value % 1 !== 0 || value < 0 || value > 65536) {
                 error = `'uint16' required`;
                 return false;
             };
@@ -190,9 +185,7 @@ const f_value = function(value, schema) {
                 return false;
             };
 
-            value = parseInt(value);
-
-            if (isNaN(value) || value % 1 !== 0 || value < -2147483648 || value > 2147483648) {
+            if (isNaN(parseInt(value)) || value % 1 !== 0 || value < -2147483648 || value > 2147483648) {
                 error = `'int32' required`;
                 return false;
             };
@@ -206,9 +199,7 @@ const f_value = function(value, schema) {
                 return false;
             };
 
-            value = parseInt(value);
-
-            if (isNaN(value) || value % 1 !== 0 || value < 0 || value > 4294967295) {
+            if (isNaN(parseInt(value)) || value % 1 !== 0 || value < 0 || value > 4294967295) {
                 error = `'uint32' required`;
                 return false;
             };

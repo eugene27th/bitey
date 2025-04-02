@@ -194,15 +194,15 @@ const form = function(req) {
             };
 
             const extensions = {
-                [`image/png`]: `png`,
-                [`image/jpeg`]: `jpg`,
-                [`image/webp`]: `webp`,
-                [`image/gif`]: `gif`,
-                [`image/svg+xml`]: `svg`,
-                [`application/zip`]: `zip`,
-                [`application/zip-compressed`]: `zip`,
-                [`application/x-zip-compressed`]: `zip`,
-                [`video/mp4`]: `mp4`
+                "image/png": `png`,
+                "image/jpeg": `jpg`,
+                "image/webp": `webp`,
+                "image/gif": `gif`,
+                "image/svg+xml": `svg`,
+                "application/zip": `zip`,
+                "application/zip-compressed": `zip`,
+                "application/x-zip-compressed": `zip`,
+                "video/mp4": `mp4`
             };
 
             let file = {
@@ -264,10 +264,12 @@ const body = function(req) {
             };
         };
 
-        for (const property of Object.values(req.options.schema.body.entries)) {
-            if (property.required) {
-                return {
-                    error: `body raw is missing`
+        if (req.options.schema.body.entries) {
+            for (const property of Object.values(req.options.schema.body.entries)) {
+                if (property.required) {
+                    return {
+                        error: `body raw is missing`
+                    };
                 };
             };
         };

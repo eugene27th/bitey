@@ -22,7 +22,7 @@ const turnstile = async function(req) {
 
     const request = await fetch(`https://challenges.cloudflare.com/turnstile/v0/siteverify`, { method: `POST`, body: form });
 
-    if (request.status !== 200) {
+    if (request.status !== 200 || !(await request.json()).success) {
         logger.log(`http:${req.method} > ${req.headers[`cf-connecting-ip`] || `unknown ip`} > ${req.url} > turnstile failed`);
 
         return {

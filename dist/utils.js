@@ -31,7 +31,7 @@ const getTimestamp = function(date) {
 
 const createUUIDts = function() {
     const uuid = crypto.randomUUID();
-    const ts = `${timestamp()}`;
+    const ts = `${getTimestamp()}`;
 
     return `${uuid.slice(0, 4)}${ts.slice(5)}${uuid.slice(4, 30)}${ts.slice(0, 5)}${uuid.slice(-6)}`;
 };
