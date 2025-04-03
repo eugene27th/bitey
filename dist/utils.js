@@ -36,13 +36,22 @@ const createUUIDts = function() {
     return `${uuid.slice(0, 4)}${ts.slice(5)}${uuid.slice(4, 30)}${ts.slice(0, 5)}${uuid.slice(-6)}`;
 };
 
-const createString = function(length, tocase) {
-    let chars = `QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789`;
+const createString = function(length, includes = [`default`]) {
+    const charset = {
+        "default": `QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789`,
+        "letters": `QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm`,
+        "letters-l": `qwertyuiopasdfghjklzxcvbnm`,
+        "letters-u": `QWERTYUIOPASDFGHJKLZXCVBNM`,
+        "numbers": `0123456789`,
+        "symbols": `!?@#$%^&*<>-+=`
+    };
+    
+    let chars = ``;
 
-    if (tocase === `up`) {
-        chars = `QWERTYUIOPASDFGHJKLZXCVBNM0123456789`;
-    } else if (tocase === `low`) {
-        chars = `qwertyuiopasdfghjklzxcvbnm0123456789`;
+    for (const type of includes) {
+        if (charset[type]) {
+            chars += charset[type];
+        };
     };
 
     let result = ``;
