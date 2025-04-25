@@ -1,11 +1,13 @@
 /*
-    (checked value, schema)
-    return boolean
+    arguments: (checked value, schema)
+    return: boolean
+    
     error message in bitey.validator.error()
 
     types:
+        boolean - boolean
         string - any string
-        boolean - boolean || `true` (string) || `false` (string)
+        number - any number
         int, int8, int16, int32 - int number
         uint, uint8, uint16, uint32 - int number more than zero
         float - float number
@@ -16,7 +18,7 @@
 
     options:
         general:
-            required
+            required - value is required
             min - min number || min string length || min array elements || min json object keys
             max - max number || max string length || max array elements || max json object keys
 
@@ -27,14 +29,14 @@
             pattern - own or key from `validator.js > patterns`
 
         value:
-            string (false) - if type = boolean, int, int8, int16, int32, uint, uint8, uint16, uint32, float. allows a value in a string 
+            string (default: false) - if type = boolean, int, int8, int16, int32, uint, uint8, uint16, uint32, float. expects a value in string
 
         array:
-            duplicates (false) - duplicate identical elements in an array. true - available, false - not available
+            duplicates (default: false) - duplicate identical elements in an array. true - available, false - not available
             items - array schema
 
         object:
-            null - null available
+            null (default: false) - null available
             entries - json entries
 */
 

@@ -36,6 +36,10 @@ const createUUIDts = function() {
     return `${uuid.slice(0, 4)}${ts.slice(5)}${uuid.slice(4, 30)}${ts.slice(0, 5)}${uuid.slice(-6)}`;
 };
 
+const createUUID = function() {
+    return crypto.randomUUID();
+};
+
 const createString = function(length, includes = [`default`]) {
     const charset = {
         "default": `QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789`,
@@ -45,7 +49,7 @@ const createString = function(length, includes = [`default`]) {
         "numbers": `0123456789`,
         "symbols": `!?@#$%^&*<>-+=`
     };
-    
+
     let chars = ``;
 
     for (const type of includes) {
@@ -123,6 +127,7 @@ module.exports = {
         timestamp: getTimestamp
     },
     create: {
+        uuid: createUUID,
         uuidts: createUUIDts,
         string: createString
     },

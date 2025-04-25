@@ -4,7 +4,7 @@ if (!config.mysql) {
     return module.exports = null;
 };
 
-const connection = require(`mysql2/promise`).createPool(config.mysql);
+const connection = require(`mariadb`).createPool(config.mysql);
 
 
 const exe = async function(query, values, params) {
@@ -20,23 +20,23 @@ const exe = async function(query, values, params) {
 
     if (fields?.length > 0) {
         if (params?.boolean === undefined || params?.boolean === true) {
-            const enums = {};
+            const names = [];
 
             for (const field of fields) {
-                if (field.type === 254 && (field.flags & 256) === 256) {
-                    enums[field.name] = true;
+                if (field.columnType === 254 && (field.flags & 256) === 256) {
+                    names.push(field.name());
                 };
             };
 
-            if (Object.keys(enums).length > 0) {
+            if (names.length > 0) {
                 for (let i = 0; i < result.length; i++) {
-                    for (const field in enums) {
-                        const value = result[i][field];
+                    for (const name of names) {
+                        const value = result[i][name];
 
                         if (value === `true`) {
-                            result[i][field] = true;
+                            result[i][name] = true;
                         } else if (value === `false`) {
-                            result[i][field] = false;
+                            result[i][name] = false;
                         };
                     };
                 };

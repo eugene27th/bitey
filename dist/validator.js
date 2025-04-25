@@ -80,13 +80,55 @@ const f_value = function(value, schema) {
             break;
         };
 
-        case `int`: {
-            if (!schema.string && typeof value !== `number`) {
+        case `number`: {
+            if (!schema.string) {
+                if (typeof value !== `number`) {
+                    error = `'number' required`;
+                    return false;
+                };
+            } else {
+                if (typeof value !== `string`) {
+                    error = `'number in string' required`;
+                    return false;
+                };
+
+                value = parseInt(value);
+            };
+
+            if (isNaN(value)) {
                 error = `'number' required`;
                 return false;
             };
 
-            if (isNaN(parseInt(value)) || value % 1 !== 0) {
+            if (schema.min !== undefined && value < schema.min) {
+                error = `'${schema.min} < value' required`;
+                return false;
+            };
+
+            if (schema.max !== undefined && value > schema.max) {
+                error = `'value < ${schema.max}' required`;
+                return false;
+            };
+
+            break;
+        };
+
+        case `int`: {
+            if (!schema.string) {
+                if (typeof value !== `number`) {
+                    error = `'number' required`;
+                    return false;
+                };
+            } else {
+                if (typeof value !== `string`) {
+                    error = `'number in string' required`;
+                    return false;
+                };
+
+                value = parseInt(value);
+            };
+
+            if (isNaN(value) || value % 1 !== 0) {
                 error = `'int' required`;
                 return false;
             };
@@ -105,12 +147,21 @@ const f_value = function(value, schema) {
         };
 
         case `uint`: {
-            if (!schema.string && typeof value !== `number`) {
-                error = `'number' required`;
-                return false;
+            if (!schema.string) {
+                if (typeof value !== `number`) {
+                    error = `'number' required`;
+                    return false;
+                };
+            } else {
+                if (typeof value !== `string`) {
+                    error = `'number in string' required`;
+                    return false;
+                };
+
+                value = parseInt(value);
             };
 
-            if (isNaN(parseInt(value)) || value % 1 !== 0 || value < 0) {
+            if (isNaN(value) || value % 1 !== 0 || value < 0) {
                 error = `'uint' required`;
                 return false;
             };
@@ -124,12 +175,21 @@ const f_value = function(value, schema) {
         };
 
         case `int8`: {
-            if (!schema.string && typeof value !== `number`) {
-                error = `'number' required`;
-                return false;
+            if (!schema.string) {
+                if (typeof value !== `number`) {
+                    error = `'number' required`;
+                    return false;
+                };
+            } else {
+                if (typeof value !== `string`) {
+                    error = `'number in string' required`;
+                    return false;
+                };
+
+                value = parseInt(value);
             };
 
-            if (isNaN(parseInt(value)) || value % 1 !== 0 || value < -128 || value > 128) {
+            if (isNaN(value) || value % 1 !== 0 || value < -128 || value > 128) {
                 error = `'int8' required`;
                 return false;
             };
@@ -138,12 +198,21 @@ const f_value = function(value, schema) {
         };
 
         case `uint8`: {
-            if (!schema.string && typeof value !== `number`) {
-                error = `'number' required`;
-                return false;
+            if (!schema.string) {
+                if (typeof value !== `number`) {
+                    error = `'number' required`;
+                    return false;
+                };
+            } else {
+                if (typeof value !== `string`) {
+                    error = `'number in string' required`;
+                    return false;
+                };
+
+                value = parseInt(value);
             };
 
-            if (isNaN(parseInt(value)) || value % 1 !== 0 || value < 0 || value > 256) {
+            if (isNaN(value) || value % 1 !== 0 || value < 0 || value > 256) {
                 error = `'uint8' required`;
                 return false;
             };
@@ -152,12 +221,21 @@ const f_value = function(value, schema) {
         };
 
         case `int16`: {
-            if (!schema.string && typeof value !== `number`) {
-                error = `'number' required`;
-                return false;
+            if (!schema.string) {
+                if (typeof value !== `number`) {
+                    error = `'number' required`;
+                    return false;
+                };
+            } else {
+                if (typeof value !== `string`) {
+                    error = `'number in string' required`;
+                    return false;
+                };
+
+                value = parseInt(value);
             };
 
-            if (isNaN(parseInt(value)) || value % 1 !== 0 || value < -32768 || value > 32768) {
+            if (isNaN(value) || value % 1 !== 0 || value < -32768 || value > 32768) {
                 error = `'int16' required`;
                 return false;
             };
@@ -166,12 +244,21 @@ const f_value = function(value, schema) {
         };
 
         case `uint16`: {
-            if (!schema.string && typeof value !== `number`) {
-                error = `'number' required`;
-                return false;
+            if (!schema.string) {
+                if (typeof value !== `number`) {
+                    error = `'number' required`;
+                    return false;
+                };
+            } else {
+                if (typeof value !== `string`) {
+                    error = `'number in string' required`;
+                    return false;
+                };
+
+                value = parseInt(value);
             };
 
-            if (isNaN(parseInt(value)) || value % 1 !== 0 || value < 0 || value > 65536) {
+            if (isNaN(value) || value % 1 !== 0 || value < 0 || value > 65536) {
                 error = `'uint16' required`;
                 return false;
             };
@@ -180,12 +267,21 @@ const f_value = function(value, schema) {
         };
 
         case `int32`: {
-            if (!schema.string && typeof value !== `number`) {
-                error = `'number' required`;
-                return false;
+            if (!schema.string) {
+                if (typeof value !== `number`) {
+                    error = `'number' required`;
+                    return false;
+                };
+            } else {
+                if (typeof value !== `string`) {
+                    error = `'number in string' required`;
+                    return false;
+                };
+
+                value = parseInt(value);
             };
 
-            if (isNaN(parseInt(value)) || value % 1 !== 0 || value < -2147483648 || value > 2147483648) {
+            if (isNaN(value) || value % 1 !== 0 || value < -2147483648 || value > 2147483648) {
                 error = `'int32' required`;
                 return false;
             };
@@ -194,12 +290,21 @@ const f_value = function(value, schema) {
         };
 
         case `uint32`: {
-            if (!schema.string && typeof value !== `number`) {
-                error = `'number' required`;
-                return false;
+            if (!schema.string) {
+                if (typeof value !== `number`) {
+                    error = `'number' required`;
+                    return false;
+                };
+            } else {
+                if (typeof value !== `string`) {
+                    error = `'number in string' required`;
+                    return false;
+                };
+
+                value = parseInt(value);
             };
 
-            if (isNaN(parseInt(value)) || value % 1 !== 0 || value < 0 || value > 4294967295) {
+            if (isNaN(value) || value % 1 !== 0 || value < 0 || value > 4294967295) {
                 error = `'uint32' required`;
                 return false;
             };
@@ -208,12 +313,19 @@ const f_value = function(value, schema) {
         };
 
         case `float`: {
-            if (!schema.string && typeof value !== `number`) {
-                error = `'number' required`;
-                return false;
-            };
+            if (!schema.string) {
+                if (typeof value !== `number`) {
+                    error = `'number' required`;
+                    return false;
+                };
+            } else {
+                if (typeof value !== `string`) {
+                    error = `'number in string' required`;
+                    return false;
+                };
 
-            value = parseFloat(value);
+                value = parseFloat(value);
+            };
 
             if (isNaN(value)) {
                 error = `'float' required`;
@@ -382,35 +494,35 @@ const f_json = function(json, schema) {
                 return false;
             };
         };
-    
+
         for (const [key, value] of Object.entries(json)) {
             if (!schema.entries[key]) {
                 error = `'${key}' is not required`;
                 return false;
             };
-    
+
             if (schema.entries[key].null && value === null) {
                 continue;
             };
-    
+
             if (schema.entries[key].type === `array`) {
                 if (!f_array(value, schema.entries[key])) {
                     error = `'${key}' is invalid > ${error}`;
                     return false;
                 };
-    
+
                 continue;
             };
-    
+
             if (schema.entries[key].type === `object`) {
                 if (!f_json(value, schema.entries[key])) {
                     error = `'${key}' is invalid > ${error}`;
                     return false;
                 };
-    
+
                 continue;
             };
-    
+
             if (!f_value(value, schema.entries[key])) {
                 error = `'${key}' is invalid > ${error}`;
                 return false;
