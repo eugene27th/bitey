@@ -1,5 +1,5 @@
 /*
-    (sql query, values, options)
+    args: (sql query, values, options)
 
     options:
         - array: false // default: false | always return result in array, even if there is no value or its length is 1
@@ -14,7 +14,7 @@ const exe = await bitey.mysql.exe(`SELECT * FROM accounts WHERE username = ?`, [
 
 
 /*
-    (table name, conditions, options)
+    args: (table name, conditions, options)
 
     conditions:
         { key: `value` } // where key = value
@@ -36,7 +36,7 @@ const get = await bitey.mysql.get(`accounts`, {
 
 
 /*
-    (table name, values, options)
+    args: (table name, values, options)
 
     values:
         { key: `value` } // set key = value
@@ -57,7 +57,7 @@ const ins = await bitey.mysql.ins(`accounts`, {
 
 
 /*
-    (table name, conditions, values)
+    args: (table name, conditions, values)
 
     conditions:
         { key: `value` } // where key = value
@@ -75,7 +75,7 @@ const upd = await bitey.mysql.upd(`accounts`, { id: 1 }, {
 
 
 /*
-    (table name, conditions)
+    args: (table name, conditions)
 
     conditions:
         { key: `value` } // where key = value

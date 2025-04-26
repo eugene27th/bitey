@@ -37,7 +37,7 @@ module.exports = function(app) {
         }
     );
 
-    app.post(`/example/:hello/:number/:world`, // /example/something/10/else?cat=orange
+    app.post(`/payload/:hello/:world`, // /payload/cats/100?meow=murr
         {
             schema: {
                 params: [
@@ -46,14 +46,11 @@ module.exports = function(app) {
                     },
                     {
                         type: `int`, min: 1, max: 30
-                    },
-                    {
-                        type: `string`, min: 1, max: 64
                     }
                 ],
                 query: {
                     entries: {
-                        cat: {
+                        meow: {
                             type: `string`, min: 1, max: 128
                         }
                     }

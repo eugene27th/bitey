@@ -48,6 +48,7 @@
         "password": "password",
         "connectionLimit": 10,
         "metaAsArray": true,
+        "insertIdAsNumber": true,
         "timezone": "+02:00",
 
         "waitForConnections": true,
