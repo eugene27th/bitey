@@ -44,14 +44,14 @@ const f_value = function(value, schema) {
 
     switch (schema.type) {
         case `boolean`: {
-            if (typeof value !== `boolean`) {
-                if (!schema.string) {
+            if (!schema.string) {
+                if (typeof value !== `boolean`) {
                     error = `'boolean' required`;
                     return false;
                 };
-
+            } else {
                 if (value !== `true` && value !== `false`) {
-                    error = `'boolean' required`;
+                    error = `'boolean in string' required`;
                     return false;
                 };
             };
