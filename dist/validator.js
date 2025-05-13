@@ -350,6 +350,11 @@ const f_value = function(value, schema) {
 
             if (typeof schema.enum === `string`) {
                 array = enums[schema.enum];
+
+                if (!array) {
+                    error = `enum not found`;
+                    return false;
+                };
             };
 
             if (!array.includes(value)) {
@@ -362,14 +367,19 @@ const f_value = function(value, schema) {
 
         case `pattern`: {
             if (typeof value !== `string`) {
-                error = `pattern '${schema.pattern}' required`;
+                error = `string with pattern '${schema.pattern}' required`;
                 return false;
             };
 
             let pattern = schema.pattern;
 
-            if (patterns[schema.pattern]) {
+            if (typeof schema.pattern === `string`) {
                 pattern = patterns[schema.pattern];
+
+                if (!pattern) {
+                    error = `pattern not found`;
+                    return false;
+                };
             };
 
             value = value.trim();
