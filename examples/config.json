@@ -2,20 +2,9 @@
     "port": 30000,
 
     "headers": [
-        "origin",
-        "content-type",
-        "content-length",
-        "host",
-        "user-agent",
-        "accept",
-        "accept-encoding",
-        "connection",
-        "cache-control",
         "cookie",
         "session",
-        "cf-connecting-ip",
-        "cf-ipcountry",
-        "challenge"
+        "user-agent"
     ],
 
     "cors": {
@@ -27,13 +16,8 @@
     },
 
     "guard": {
-        "http": {
-            "*": [60, 10],
-            "get": [60, 10],
-            "post": [30, 10],
-            "patch": [10, 10],
-            "del": [10, 10]
-        }
+        "http": [60, 10],
+        "ws": [10, [60, 10]]
     },
 
     "logger": {

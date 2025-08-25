@@ -13,15 +13,15 @@ module.exports = function(app) {
     app.post(`/options`,
         {
             config: {
-                raw: true, // set original buffer payload in req.raw
-                guard: [15, 10], // limit on route [n attempts, in n seconds]
+                buffer: true, // set original buffer payload in req.buffer
+                guard: [15, 10], // limit [n requests, in n seconds]
                 turnstile: true, // turn on cloudflare turnstile challenge
                 log: {
                     headers: true,
-                    payload: false
+                    payload: true
                 }
             },
-            middlewares: [middlewareOne, middlewareTwo], // executed before final function
+            middlewares: [middlewareOne, middlewareTwo], // executed before final handler
             schema: {
                 body: {
                     type: `application/json`, min: 2, max: 3
@@ -37,7 +37,7 @@ module.exports = function(app) {
         }
     );
 
-    app.post(`/payload/:hello/:world`, // /payload/cats/100?meow=murr
+    app.post(`/payload/:hello/:world`, // /payload/cat/100?meow=murr
         {
             schema: {
                 params: [
@@ -82,7 +82,8 @@ module.exports = function(app) {
             }
         },
         async function(res, req) {
-            res.send(req);
+            console.log(req);
+            res.send(null, 204);
         }
     );
 
@@ -110,7 +111,8 @@ module.exports = function(app) {
             },
         },
         async function(res, req) {
-            res.send(req);
+            console.log(req);
+            res.send(null, 204);
         }
     );
 };

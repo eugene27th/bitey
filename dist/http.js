@@ -1,6 +1,5 @@
 const config = require(`${process.cwd()}/config.json`);
 
-const guard = require(`./guard`);
 const parser = require(`./parser`);
 const logger = require(`./logger`);
 const challenge = require(`./challenge`);
@@ -28,11 +27,46 @@ module.exports = function(app) {
         return res.end();
     });
 
-    for (const method of [`get`, `post`, `patch`, `del`]) {
-        app[`__${method}`] = app[method].bind(app);
+    app.http = {
+        methods: {
+            get: {},
+            post: {},
+            patch: {},
+            del: {}
+        },
+        requests: {}
+    };
 
-        app[method] = function(url, options, callback) {
-            app[`__${method}`](url, async function(res, req) {
+    setInterval(() => {
+        app.http.requests = {};
+    }, config.guard.http[1] * 1000);
+
+    for (const method of Object.keys(app.http.methods)) {
+        app[`_${method}`] = app[method].bind(app);
+
+        app[method] = function(url, options, handler) {
+            app.http.methods[method][url] = {
+                config: {
+                    buffer: options.config?.buffer !== undefined ? options.config.buffer : false,
+                    guard: options.config?.guard !== undefined ? options.config.guard : null,
+                    turnstile: options.config?.turnstile !== undefined ? options.config.turnstile : false,
+                    log: {
+                        headers: options.config?.log?.headers !== undefined ? options.config.log?.headers : false,
+                        payload: options.config?.log?.payload !== undefined ? options.config.log?.payload : true
+                    }
+                },
+                schema: options.schema || null,
+                handlers: (options.middlewares || []).concat(handler).reverse(),
+                requests: {}
+            };
+
+            if (app.http.methods[method][url].config.guard) {
+                setInterval(() => {
+                    app.http.methods[method][url].requests = {};
+                }, app.http.methods[method][url].config.guard[1] * 1000);
+            };
+
+            app[`_${method}`](url, async function(res, req) {
                 res.headers = [];
 
                 res.onAborted(function() {
@@ -53,21 +87,11 @@ module.exports = function(app) {
                     };
 
                     res.cork(function() {
-                        if (status) {
-                            res.writeStatus(`${status}`);
-                        } else if (data === true) {
-                            res.writeStatus(`204`);
-                        } else if (typeof data === `undefined`) {
-                            data = {
-                                error: `ER_NOT_FOUND`
-                            };
-
-                            res.writeStatus(`404`);
-                        };
+                        res.writeStatus(`${status || 200}`);
 
                         if (config.cors) {
-                            if (config.cors.origin && config.cors.origin.includes(req.headers.origin)) {
-                                res.writeHeader(`Access-Control-Allow-Origin`, req.headers.origin);
+                            if (config.cors.origin && req.headers[`origin`] && config.cors.origin.includes(req.headers[`origin`])) {
+                                res.writeHeader(`Access-Control-Allow-Origin`, req.headers[`origin`]);
                             };
 
                             if (config.cors.credentials) {
@@ -81,7 +105,7 @@ module.exports = function(app) {
                             };
                         };
 
-                        if (data === true) {
+                        if (!data) {
                             return res.end();
                         };
 
@@ -105,20 +129,16 @@ module.exports = function(app) {
 
                 req.url = url;
                 req.method = method;
-                req.headers = {};
 
-                req.options = {
-                    config: {
-                        raw: options.config?.raw !== undefined ? options.config.raw : false,
-                        guard: options.config?.guard !== undefined ? options.config.guard : null,
-                        turnstile: options.config?.turnstile !== undefined ? options.config.turnstile : false,
-                        log: {
-                            headers: options.config?.log?.headers !== undefined ? options.config.log?.headers : false,
-                            payload: options.config?.log?.payload !== undefined ? options.config.log?.payload : true
-                        }
-                    },
-                    middlewares: options.middlewares || [],
-                    schema: options.schema
+                req.config = app.http.methods[method][url].config;
+                req.schema = app.http.methods[method][url].schema;
+
+                req.headers = {
+                    "origin": req.getHeader(`origin`),
+                    "content-type": req.getHeader(`content-type`),
+                    "cf-connecting-ip": req.getHeader(`cf-connecting-ip`),
+                    "cf-ipcountry": req.getHeader(`cf-ipcountry`),
+                    "cf-challenge": req.getHeader(`cf-challenge`)
                 };
 
                 if (config.headers) {
@@ -131,18 +151,40 @@ module.exports = function(app) {
                     };
                 };
 
-                if (config.guard || req.options.config.guard) {
-                    const result = guard.http(req);
+                req.user = {
+                    ip: req.headers[`cf-connecting-ip`] || `127.0.0.1`,
+                    country: req.headers[`cf-ipcountry`] || null
+                };
 
-                    if (result.error) {
+                if (app.http.requests[req.user.ip] === undefined) {
+                    app.http.requests[req.user.ip] = 1;
+                } else {
+                    app.http.requests[req.user.ip]++;
+                };
+
+                if (app.http.requests[req.user.ip] > config.guard.http[0]) {
+                    return res.send({
+                        error: `ER_RATE_LIMIT`,
+                        message: `${config.guard.http[0]} attempts per ${config.guard.http[1]} seconds`
+                    }, 429);
+                };
+
+                if (req.config?.guard) {
+                    if (app.http.methods[req.method][req.url].requests[req.user.ip] === undefined) {
+                        app.http.methods[req.method][req.url].requests[req.user.ip] = 1;
+                    } else {
+                        app.http.methods[req.method][req.url].requests[req.user.ip]++;
+                    };
+
+                    if (app.http.methods[req.method][req.url].requests[req.user.ip] > req.config.guard[0]) {
                         return res.send({
                             error: `ER_RATE_LIMIT`,
-                            message: result.error
+                            message: `${req.config.guard[0]} attempts per ${req.config.guard[1]} seconds on this route`
                         }, 429);
                     };
                 };
 
-                if (req.options.schema?.params) {
+                if (app.http.methods[method][url].schema?.params) {
                     req.params = parser.params(req);
 
                     if (req.params.error) {
@@ -153,7 +195,7 @@ module.exports = function(app) {
                     };
                 };
 
-                if (req.options.schema?.query) {
+                if (app.http.methods[method][url].schema?.query) {
                     req.query = parser.query(req);
 
                     if (req.query.error) {
@@ -177,10 +219,10 @@ module.exports = function(app) {
 
                     if (last) {
                         if (buffer.length > 0) {
-                            req.raw = buffer;
+                            req.buffer = buffer;
                         };
 
-                        if (req.options.schema?.body) {
+                        if (app.http.methods[method][url].schema?.body) {
                             req.body = parser.body(req);
 
                             if (req.body.error) {
@@ -191,11 +233,11 @@ module.exports = function(app) {
                             };
                         };
 
-                        if (!req.options.config.raw && req.raw) {
-                            delete req.raw;
+                        if (!app.http.methods[method][url].config.buffer && req.buffer) {
+                            delete req.buffer;
                         };
 
-                        if (config.cloudflare?.turnstile && req.options.config.turnstile) {
+                        if (config.cloudflare?.turnstile && app.http.methods[method][url].config.turnstile) {
                             const result = await challenge.turnstile(req);
 
                             if (result.error) {
@@ -206,24 +248,31 @@ module.exports = function(app) {
                             };
                         };
 
-                        logger.http(req);
+                        let logText = `http:${req.method} > ${req.user.ip} > ${req.url}`;
 
-                        const callbacks = req.options.middlewares.concat(callback);
+                        if (req.config?.log?.headers) {
+                            logText += ` > headers: ${JSON.stringify(req.headers)}`;
+                        };
 
-                        let cstep = 0;
-                        const mstep = callbacks.length;
+                        if (req.config?.log?.payload && req.schema) {
+                            logText += ` > payload: ${JSON.stringify({ params: req.params || null, query: req.query || null, body: req.body || null })}`;
+                        };
+
+                        logger.log(logText);
+
+                        let steps = app.http.methods[method][url].handlers.length - 1;
 
                         const next = function() {
                             if (res.aborted) {
                                 return false;
                             };
 
-                            if (cstep < mstep) {
+                            if (steps >= 0) {
                                 res.cork(async function() {
                                     try {
-                                        return await callbacks[cstep++](res, req, next);
+                                        return await app.http.methods[method][url].handlers[steps--](res, req, next);
                                     } catch (err) {
-                                        console.log(`err from http callback -> `, err);
+                                        console.log(`http debug: err from http handler -> `, err);
 
                                         return res.send({
                                             error: err.code || `ER_UNEXPECTED`,

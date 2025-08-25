@@ -40,25 +40,10 @@ const log = function(text, in_console) {
     };
 };
 
-const http = function(req) {
-    let text = `http:${req.method} > ${req.headers[`cf-connecting-ip`] || `unknown ip`} > ${req.url}`;
-
-    if (req.options.config.log?.headers) {
-        text += ` > headers: ${JSON.stringify(req.headers)}`;
-    };
-
-    if (req.options.config.log?.payload && req.options.schema) {
-        text += ` > payload: ${JSON.stringify({ params: req.params, query: req.query, body: req.body })}`;
-    };
-
-    return log(text);
-};
-
 
 setInterval(write, config.logger?.interval * 1000 || 10000);
 
 
 module.exports = {
-    log,
-    http
+    log
 };
