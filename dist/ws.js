@@ -13,9 +13,11 @@ module.exports = function(app) {
         messages: {}
     };
 
-    setInterval(() => {
-        app.ws.messages = {};
-    }, config.guard.ws[1][1] * 1000);
+    if (config.guard) {
+        setInterval(() => {
+            app.ws.messages = {};
+        }, config.guard.ws[1][1] * 1000);
+    };
 
     app.message = function(url, options, handler) {
         app.ws.routes[url] = {
@@ -51,10 +53,12 @@ module.exports = function(app) {
             open: function(ws) {
                 console.log(`ws debug: + ws connected`);
                 
-                if (app.ws.connections[ws.user.ip] === undefined) {
-                    app.ws.connections[ws.user.ip] = 1;
-                } else {
-                    app.ws.connections[ws.user.ip]++;
+                if (config.guard) {
+                    if (app.ws.connections[ws.user.ip] === undefined) {
+                        app.ws.connections[ws.user.ip] = 1;
+                    } else {
+                        app.ws.connections[ws.user.ip]++;
+                    };
                 };
 
                 if (ws.config?.guard) {
@@ -72,11 +76,13 @@ module.exports = function(app) {
             close: function(ws, code, message) {
                 console.log('ws debug: - ws closed');
 
-                if (app.ws.connections[ws.user.ip] !== undefined) {
-                    if (app.ws.connections[ws.user.ip] > 1) {
-                        app.ws.connections[ws.user.ip]--;
-                    } else {
-                        delete app.ws.connections[ws.user.ip];
+                if (config.guard) {
+                    if (app.ws.connections[ws.user.ip] !== undefined) {
+                        if (app.ws.connections[ws.user.ip] > 1) {
+                            app.ws.connections[ws.user.ip]--;
+                        } else {
+                            delete app.ws.connections[ws.user.ip];
+                        };
                     };
                 };
 
@@ -175,13 +181,15 @@ module.exports = function(app) {
                     }, 429);
                 };
 
-                let logText = `ws:connection > ${req.user.ip} > ${req.url}`;
+                if (config.logger) {
+                    let logText = `ws:connection > ${req.user.ip} > ${req.url}`;
 
-                if (req.config?.log?.headers) {
-                    logText += ` > headers: ${JSON.stringify(req.headers)}`;
+                    if (req.config?.log?.headers) {
+                        logText += ` > headers: ${JSON.stringify(req.headers)}`;
+                    };
+
+                    logger.log(logText);
                 };
-
-                logger.log(logText);
 
                 if (app.ws.routes[url].handlers?.upgrade) {
                     let steps = app.ws.routes[url].handlers.upgrade.length - 1;
@@ -236,17 +244,19 @@ module.exports = function(app) {
             message: async function(ws, message, isBinary) {
                 ws.message = isBinary ? message : Buffer.from(message).toString();
 
-                if (app.ws.messages[ws.user.ip] === undefined) {
-                    app.ws.messages[ws.user.ip] = 1;
-                } else {
-                    app.ws.messages[ws.user.ip]++;
-                };
+                if (config.guard) {
+                    if (app.ws.messages[ws.user.ip] === undefined) {
+                        app.ws.messages[ws.user.ip] = 1;
+                    } else {
+                        app.ws.messages[ws.user.ip]++;
+                    };
 
-                if (app.ws.messages[ws.user.ip] > config.guard.ws[1][0]) {
-                    return ws.send(JSON.stringify({
-                        error: `ER_RATE_LIMIT`,
-                        message: `${config.guard.ws[1][0]} attempts per ${config.guard.ws[1][1]} seconds`
-                    }));
+                    if (app.ws.messages[ws.user.ip] > config.guard.ws[1][0]) {
+                        return ws.send(JSON.stringify({
+                            error: `ER_RATE_LIMIT`,
+                            message: `${config.guard.ws[1][0]} attempts per ${config.guard.ws[1][1]} seconds`
+                        }));
+                    };
                 };
 
                 if (ws.config?.guard) {
@@ -275,13 +285,15 @@ module.exports = function(app) {
                     };
                 };
 
-                let logText = `ws:message > ${ws.user.ip} > ${ws.url}`;
+                if (config.logger) {
+                    let logText = `ws:message > ${ws.user.ip} > ${ws.url}`;
 
-                if (ws.config?.log?.payload && ws.schema) {
-                    logText += ` > payload: ${JSON.stringify({ message: ws.message })}`;
+                    if (ws.config?.log?.payload && ws.schema) {
+                        logText += ` > payload: ${JSON.stringify({ message: ws.message })}`;
+                    };
+
+                    logger.log(logText);
                 };
-
-                logger.log(logText);
 
                 let steps = app.ws.routes[url].handlers.message.length - 1;
 

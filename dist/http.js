@@ -37,9 +37,11 @@ module.exports = function(app) {
         requests: {}
     };
 
-    setInterval(() => {
-        app.http.requests = {};
-    }, config.guard.http[1] * 1000);
+    if (config.guard) {
+        setInterval(() => {
+            app.http.requests = {};
+        }, config.guard.http[1] * 1000);
+    };
 
     for (const method of Object.keys(app.http.methods)) {
         app[`_${method}`] = app[method].bind(app);
@@ -156,17 +158,19 @@ module.exports = function(app) {
                     country: req.headers[`cf-ipcountry`] || null
                 };
 
-                if (app.http.requests[req.user.ip] === undefined) {
-                    app.http.requests[req.user.ip] = 1;
-                } else {
-                    app.http.requests[req.user.ip]++;
-                };
+                if (config.guard) {
+                    if (app.http.requests[req.user.ip] === undefined) {
+                        app.http.requests[req.user.ip] = 1;
+                    } else {
+                        app.http.requests[req.user.ip]++;
+                    };
 
-                if (app.http.requests[req.user.ip] > config.guard.http[0]) {
-                    return res.send({
-                        error: `ER_RATE_LIMIT`,
-                        message: `${config.guard.http[0]} attempts per ${config.guard.http[1]} seconds`
-                    }, 429);
+                    if (app.http.requests[req.user.ip] > config.guard.http[0]) {
+                        return res.send({
+                            error: `ER_RATE_LIMIT`,
+                            message: `${config.guard.http[0]} attempts per ${config.guard.http[1]} seconds`
+                        }, 429);
+                    };
                 };
 
                 if (req.config?.guard) {
@@ -248,17 +252,19 @@ module.exports = function(app) {
                             };
                         };
 
-                        let logText = `http:${req.method} > ${req.user.ip} > ${req.url}`;
+                        if (config.logger) {
+                            let logText = `http:${req.method} > ${req.user.ip} > ${req.url}`;
 
-                        if (req.config?.log?.headers) {
-                            logText += ` > headers: ${JSON.stringify(req.headers)}`;
+                            if (req.config?.log?.headers) {
+                                logText += ` > headers: ${JSON.stringify(req.headers)}`;
+                            };
+
+                            if (req.config?.log?.payload && req.schema) {
+                                logText += ` > payload: ${JSON.stringify({ params: req.params || null, query: req.query || null, body: req.body || null })}`;
+                            };
+
+                            logger.log(logText);
                         };
-
-                        if (req.config?.log?.payload && req.schema) {
-                            logText += ` > payload: ${JSON.stringify({ params: req.params || null, query: req.query || null, body: req.body || null })}`;
-                        };
-
-                        logger.log(logText);
 
                         let steps = app.http.methods[method][url].handlers.length - 1;
 
