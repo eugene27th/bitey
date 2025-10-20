@@ -154,7 +154,7 @@ module.exports = function(app) {
                 };
 
                 req.user = {
-                    ip: req.headers[`cf-connecting-ip`] || `127.0.0.1`,
+                    ip: req.headers[`cf-connecting-ip`] || `1.1.1.1`,
                     country: req.headers[`cf-ipcountry`] || null
                 };
 
