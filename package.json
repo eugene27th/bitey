@@ -9,6 +9,6 @@
     "dependencies": {
         "@redis/client": "^1.6.0",
         "mariadb": "^3.4.1",
-        "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.54.0"
+        "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.56.0"
     }
 }
