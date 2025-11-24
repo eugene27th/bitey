@@ -2,7 +2,6 @@ const config = require(`${process.cwd()}/config.json`);
 
 const parser = require(`./parser`);
 const logger = require(`./logger`);
-const challenge = require(`./challenge`);
 
 
 module.exports = function(app) {
@@ -51,7 +50,6 @@ module.exports = function(app) {
                 config: {
                     buffer: options.config?.buffer !== undefined ? options.config.buffer : false,
                     guard: options.config?.guard !== undefined ? options.config.guard : null,
-                    turnstile: options.config?.turnstile !== undefined ? options.config.turnstile : false,
                     log: {
                         headers: options.config?.log?.headers !== undefined ? options.config.log?.headers : false,
                         payload: options.config?.log?.payload !== undefined ? options.config.log?.payload : true
@@ -138,9 +136,7 @@ module.exports = function(app) {
                 req.headers = {
                     "origin": req.getHeader(`origin`),
                     "content-type": req.getHeader(`content-type`),
-                    "cf-connecting-ip": req.getHeader(`cf-connecting-ip`),
-                    "cf-ipcountry": req.getHeader(`cf-ipcountry`),
-                    "cf-challenge": req.getHeader(`cf-challenge`)
+                    "x-real-ip": req.getHeader(`x-real-ip`)
                 };
 
                 if (config.headers) {
@@ -154,8 +150,7 @@ module.exports = function(app) {
                 };
 
                 req.user = {
-                    ip: req.headers[`cf-connecting-ip`] || `1.1.1.1`,
-                    country: req.headers[`cf-ipcountry`] || null
+                    ip: req.headers[`x-real-ip`] || `1.1.1.1`
                 };
 
                 if (config.guard) {
@@ -239,17 +234,6 @@ module.exports = function(app) {
 
                         if (!app.http.methods[method][url].config.buffer && req.buffer) {
                             delete req.buffer;
-                        };
-
-                        if (config.cloudflare?.turnstile && app.http.methods[method][url].config.turnstile) {
-                            const result = await challenge.turnstile(req);
-
-                            if (result.error) {
-                                return res.send({
-                                    error: result.error,
-                                    message: result.message
-                                }, 403);
-                            };
                         };
 
                         if (config.logger) {

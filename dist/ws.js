@@ -147,9 +147,7 @@ module.exports = function(app) {
                     "sec-websocket-key": req.getHeader(`sec-websocket-key`),
                     "sec-websocket-protocol": req.getHeader(`sec-websocket-protocol`),
                     "sec-websocket-extensions": req.getHeader(`sec-websocket-extensions`),
-                    "cf-connecting-ip": req.getHeader(`cf-connecting-ip`),
-                    "cf-ipcountry": req.getHeader(`cf-ipcountry`),
-                    "cf-challenge": req.getHeader(`cf-challenge`)
+                    "x-real-ip": req.getHeader(`x-real-ip`)
                 };
 
                 if (config.headers) {
@@ -163,8 +161,7 @@ module.exports = function(app) {
                 };
 
                 req.user = {
-                    ip: req.headers[`cf-connecting-ip`] || `1.1.1.1`,
-                    country: req.headers[`cf-ipcountry`] || null
+                    ip: req.headers[`x-real-ip`] || `1.1.1.1`
                 };
 
                 if (app.ws.connections[req.user.ip] > config.guard.ws[0]) {

@@ -15,7 +15,6 @@ module.exports = function(app) {
             config: {
                 buffer: true, // set original buffer payload in req.buffer
                 guard: [15, 10], // limit [n requests, in n seconds]
-                turnstile: true, // turn on cloudflare turnstile challenge
                 log: {
                     headers: true,
                     payload: true
