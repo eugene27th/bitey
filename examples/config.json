@@ -34,7 +34,6 @@
         "metaAsArray": true,
         "insertIdAsNumber": true,
         "timezone": "+02:00",
-
         "waitForConnections": true,
         "queueLimit": 0,
         "multipleStatements": true
