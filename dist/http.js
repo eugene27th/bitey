@@ -9,7 +9,7 @@ module.exports = function(app) {
         const origin = req.getHeader(`origin`);
 
         res.writeHeader(`Vary`, `Origin`);
-        res.writeHeader(`Access-Control-Allow-Methods`, `GET,POST,PATCH,DELETE`);
+        res.writeHeader(`Access-Control-Allow-Methods`, `GET,POST,PATCH,PUT,DELETE`);
 
         if (config.cors?.origin && config.cors.origin.includes(origin)) {
             res.writeHeader(`Access-Control-Allow-Origin`, origin);
@@ -31,6 +31,7 @@ module.exports = function(app) {
             get: {},
             post: {},
             patch: {},
+            put: {},
             del: {}
         },
         requests: {}

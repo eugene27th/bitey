@@ -7,7 +7,7 @@ Bitey — лёгкий веб-фреймворк на основе `uWebSockets.
 ## Краткое описание возможностей
 
 - Быстрый HTTP-сервер поверх `uWebSockets.js`.
-- Встроенная маршрутизация: `app.get`, `app.post`, `app.patch`, `app.del`.
+- Встроенная маршрутизация: `app.get`, `app.post`, `app.patch`, `app.put`, `app.del`.
 - Глобальные и маршрутные лимиты запросов (rate limiting).
 - Валидация входных данных (params, query, body) через простую схему.
 - Логирование запросов, ошибок, нагрузки, заголовков, подключений, сообщений.
@@ -209,7 +209,7 @@ const middlewareMessage = async function(ws, next) {
 
 ## API и поведение
 
-Подключение: `const bitey = require(`bitey`)` экспортирует объект:
+Подключение: `const bitey = require("bitey")` экспортирует объект:
  - `bitey.app` — приложение uWebSockets (добавлены обёртки `app.get/post/patch/del` и `app.message`)
  - `bitey.cache` — простой in-memory cache: `get`, `set`, `del`
  - `bitey.error` — класс ошибок `api(status, code, extra)` для выбрасывания контроллером
