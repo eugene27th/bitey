@@ -105,18 +105,6 @@ module.exports = function(app) {
                     res.aborted = true;
                 });
 
-                if (config.cors) {
-                    res.writeHeader(`Vary`, `Origin`);
-
-                    if (config.cors.origin && req.headers[`Origin`] && config.cors.origin.includes(req.headers[`Origin`])) {
-                        res.writeHeader(`Access-Control-Allow-Origin`, req.headers[`Origin`]);
-                    };
-
-                    if (config.cors.credentials) {
-                        res.writeHeader(`Access-Control-Allow-Credentials`, `true`);
-                    };
-                };
-
                 res.send = function(dataOrStatus, onlyStatus) {
                     if (res.aborted) {
                         return false;
@@ -151,6 +139,18 @@ module.exports = function(app) {
                     "Sec-Websocket-Protocol": req.getHeader(`Sec-Websocket-Protocol`),
                     "Sec-Websocket-Extensions": req.getHeader(`Sec-Websocket-Extensions`),
                     "X-Real-Ip": req.getHeader(`X-Real-Ip`)
+                };
+
+                if (config.cors) {
+                    res.writeHeader(`Vary`, `Origin`);
+
+                    if (config.cors.origin && req.headers[`Origin`] && config.cors.origin.includes(req.headers[`Origin`])) {
+                        res.writeHeader(`Access-Control-Allow-Origin`, req.headers[`Origin`]);
+                    };
+
+                    if (config.cors.credentials) {
+                        res.writeHeader(`Access-Control-Allow-Credentials`, `true`);
+                    };
                 };
 
                 if (config.headers) {
