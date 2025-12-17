@@ -119,7 +119,7 @@ module.exports = function(app) {
                         res.writeStatus(`${onlyStatus || 200}`);
 
                         if (typeof dataOrStatus === `object`) {
-                            res.writeHeader(`Content-Type`, `application/json`);
+                            res.writeHeader(`content-type`, `application/json`);
                             return res.end(JSON.stringify(dataOrStatus));
                         };
 
@@ -133,23 +133,23 @@ module.exports = function(app) {
                 req.schema = app.ws.routes[url].schema;
 
                 req.headers = {
-                    "Origin": req.getHeader(`Origin`),
-                    "Content-Type": req.getHeader(`Content-Type`),
-                    "Sec-Websocket-Key": req.getHeader(`Sec-Websocket-Key`),
-                    "Sec-Websocket-Protocol": req.getHeader(`Sec-Websocket-Protocol`),
-                    "Sec-Websocket-Extensions": req.getHeader(`Sec-Websocket-Extensions`),
-                    "X-Real-Ip": req.getHeader(`X-Real-Ip`)
+                    "origin": req.getHeader(`origin`) || null,
+                    "content-type": req.getHeader(`content-type`) || null,
+                    "sec-websocket-key": req.getHeader(`sec-websocket-key`) || null,
+                    "sec-websocket-protocol": req.getHeader(`sec-websocket-protocol`) || null,
+                    "sec-websocket-extensions": req.getHeader(`sec-websocket-extensions`) || null,
+                    "x-real-ip": req.getHeader(`x-real-ip`) || null // добавляется из nginx
                 };
 
                 if (config.cors) {
-                    res.writeHeader(`Vary`, `Origin`);
+                    res.writeHeader(`vary`, `origin`);
 
-                    if (config.cors.origin && req.headers[`Origin`] && config.cors.origin.includes(req.headers[`Origin`])) {
-                        res.writeHeader(`Access-Control-Allow-Origin`, req.headers[`Origin`]);
+                    if (config.cors.origin && req.headers[`origin`] && config.cors.origin.includes(req.headers[`origin`])) {
+                        res.writeHeader(`access-control-allow-origin`, req.headers[`origin`]);
                     };
 
                     if (config.cors.credentials) {
-                        res.writeHeader(`Access-Control-Allow-Credentials`, `true`);
+                        res.writeHeader(`access-control-allow-credentials`, `true`);
                     };
                 };
 
@@ -164,7 +164,7 @@ module.exports = function(app) {
                 };
 
                 req.user = {
-                    ip: req.headers[`X-Real-Ip`] || `1.1.1.1`
+                    ip: req.headers[`x-real-ip`] || `1.1.1.1`
                 };
 
                 if (app.ws.connections[req.user.ip] > config.guard.ws[0]) {
@@ -232,9 +232,9 @@ module.exports = function(app) {
                             user: req.user
                         },
 
-                        req.headers[`Sec-Websocket-Key`],
-                        req.headers[`Sec-Websocket-Protocol`],
-                        req.headers[`Sec-Websocket-Extensions`],
+                        req.headers[`sec-websocket-key`],
+                        req.headers[`sec-websocket-protocol`],
+                        req.headers[`sec-websocket-extensions`],
 
                         context
                     );

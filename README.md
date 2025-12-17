@@ -307,7 +307,7 @@ app.publish(topic, JSON.stringify({ type: `publish`, message: `update` }));
 ```javascript
 {
     "port": 30000, // порт сервера
-    "headers": [ ... ], // дополнительные заголовки, которые будут собраны в req.headers (опционально)
+    "headers": [ ... ], // дополнительные заголовки, которые будут собраны в req.headers (lowercase) (опционально)
     "cors": { ... }, // параметры CORS (разрешённые origin и credentials) (опционально)
     "guard": { ... }, // глобальные лимиты для http и ws (опционально)
     "logger": { ... }, // путь и интервал записи логов

@@ -6,24 +6,24 @@ const logger = require(`./logger`);
 
 module.exports = function(app) {
     app.options(`/*`, function(res, req) {
-        const origin = req.getHeader(`Origin`);
+        const origin = req.getHeader(`origin`);
 
-        res.writeHeader(`Vary`, `Origin`);
-        res.writeHeader(`Access-Control-Allow-Methods`, `GET,POST,PATCH,PUT,DELETE`);
+        res.writeHeader(`vary`, `origin`);
+        res.writeHeader(`access-control-allow-methods`, `GET,POST,PATCH,PUT,DELETE`);
 
         if (config.cors?.origin && config.cors.origin.includes(origin)) {
-            res.writeHeader(`Access-Control-Allow-Origin`, origin);
+            res.writeHeader(`access-control-allow-origin`, origin);
         };
 
         if (config.cors?.credentials) {
-            res.writeHeader(`Access-Control-Allow-Credentials`, `true`);
+            res.writeHeader(`access-control-allow-credentials`, `true`);
         };
 
         if (config.headers) {
-            res.writeHeader(`Access-Control-Allow-Headers`, config.headers.join(`,`));
+            res.writeHeader(`access-control-allow-headers`, config.headers.join(`,`));
         };
 
-        res.writeHeader(`Access-Control-Allow-Headers`, [`Origin`, `Content-Type`, `X-Real-Ip`].join(`,`));
+        res.writeHeader(`access-control-allow-headers`, [`origin`, `content-type`].join(`,`));
 
         return res.end();
     });
@@ -88,7 +88,7 @@ module.exports = function(app) {
                         res.writeStatus(`${onlyStatus || 200}`);
 
                         if (typeof dataOrStatus === `object`) {
-                            res.writeHeader(`Content-Type`, `application/json`);
+                            res.writeHeader(`content-type`, `application/json`);
                             return res.end(JSON.stringify(dataOrStatus));
                         };
 
@@ -101,7 +101,7 @@ module.exports = function(app) {
                         return false;
                     };
 
-                    res.writeHeader(`Location`, url);
+                    res.writeHeader(`location`, url);
                     res.writeStatus(`302`);
 
                     res.cork(function() {
@@ -116,20 +116,20 @@ module.exports = function(app) {
                 req.schema = app.http.methods[method][url].schema;
 
                 req.headers = {
-                    "Origin": req.getHeader(`Origin`),
-                    "Content-Type": req.getHeader(`Content-Type`),
-                    "X-Real-Ip": req.getHeader(`X-Real-Ip`)
+                    "origin": req.getHeader(`origin`) || null,
+                    "content-type": req.getHeader(`content-type`) || null,
+                    "x-real-ip": req.getHeader(`x-real-ip`) || null // добавляется из nginx
                 };
 
                 if (config.cors) {
-                    res.writeHeader(`Vary`, `Origin`);
+                    res.writeHeader(`vary`, `origin`);
 
-                    if (config.cors.origin && req.headers[`Origin`] && config.cors.origin.includes(req.headers[`Origin`])) {
-                        res.writeHeader(`Access-Control-Allow-Origin`, req.headers[`Origin`]);
+                    if (config.cors.origin && req.headers[`origin`] && config.cors.origin.includes(req.headers[`origin`])) {
+                        res.writeHeader(`access-control-allow-origin`, req.headers[`origin`]);
                     };
 
                     if (config.cors.credentials) {
-                        res.writeHeader(`Access-Control-Allow-Credentials`, `true`);
+                        res.writeHeader(`access-control-allow-credentials`, `true`);
                     };
                 };
 
@@ -144,7 +144,7 @@ module.exports = function(app) {
                 };
 
                 req.user = {
-                    ip: req.headers[`X-Real-Ip`] || `1.1.1.1`
+                    ip: req.headers[`x-real-ip`] || `1.1.1.1`
                 };
 
                 if (config.guard) {
