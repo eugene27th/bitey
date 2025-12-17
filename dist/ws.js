@@ -105,31 +105,34 @@ module.exports = function(app) {
                     res.aborted = true;
                 });
 
-                res.send = function(data, status) {
+                if (config.cors) {
+                    res.writeHeader(`Vary`, `Origin`);
+
+                    if (config.cors.origin && req.headers[`Origin`] && config.cors.origin.includes(req.headers[`Origin`])) {
+                        res.writeHeader(`Access-Control-Allow-Origin`, req.headers[`Origin`]);
+                    };
+
+                    if (config.cors.credentials) {
+                        res.writeHeader(`Access-Control-Allow-Credentials`, `true`);
+                    };
+                };
+
+                res.send = function(dataOrStatus, onlyStatus) {
                     if (res.aborted) {
                         return false;
                     };
 
                     res.cork(function() {
-                        res.writeStatus(`${status || 200}`);
-
-                        if (config.cors) {
-                            if (config.cors.origin && req.headers[`origin`] && config.cors.origin.includes(req.headers[`origin`])) {
-                                res.writeHeader(`Access-Control-Allow-Origin`, req.headers[`origin`]);
-                            };
-
-                            if (config.cors.credentials) {
-                                res.writeHeader(`Access-Control-Allow-Credentials`, `true`);
-                            };
+                        if (!dataOrStatus || typeof dataOrStatus === `number`) {
+                            res.writeStatus(`${dataOrStatus || 204}`);
+                            return res.endWithoutBody();
                         };
 
-                        if (!data) {
-                            return res.end();
-                        };
+                        res.writeStatus(`${onlyStatus || 200}`);
 
-                        if (typeof data === `object`) {
+                        if (typeof dataOrStatus === `object`) {
                             res.writeHeader(`Content-Type`, `application/json`);
-                            return res.end(JSON.stringify(data));
+                            return res.end(JSON.stringify(dataOrStatus));
                         };
 
                         res.end(data);
@@ -142,12 +145,12 @@ module.exports = function(app) {
                 req.schema = app.ws.routes[url].schema;
 
                 req.headers = {
-                    "origin": req.getHeader(`origin`),
-                    "content-type": req.getHeader(`content-type`),
-                    "sec-websocket-key": req.getHeader(`sec-websocket-key`),
-                    "sec-websocket-protocol": req.getHeader(`sec-websocket-protocol`),
-                    "sec-websocket-extensions": req.getHeader(`sec-websocket-extensions`),
-                    "x-real-ip": req.getHeader(`x-real-ip`)
+                    "Origin": req.getHeader(`Origin`),
+                    "Content-Type": req.getHeader(`Content-Type`),
+                    "Sec-Websocket-Key": req.getHeader(`Sec-Websocket-Key`),
+                    "Sec-Websocket-Protocol": req.getHeader(`Sec-Websocket-Protocol`),
+                    "Sec-Websocket-Extensions": req.getHeader(`Sec-Websocket-Extensions`),
+                    "X-Real-Ip": req.getHeader(`X-Real-Ip`)
                 };
 
                 if (config.headers) {
@@ -161,7 +164,7 @@ module.exports = function(app) {
                 };
 
                 req.user = {
-                    ip: req.headers[`x-real-ip`] || `1.1.1.1`
+                    ip: req.headers[`X-Real-Ip`] || `1.1.1.1`
                 };
 
                 if (app.ws.connections[req.user.ip] > config.guard.ws[0]) {
@@ -229,9 +232,9 @@ module.exports = function(app) {
                             user: req.user
                         },
 
-                        req.headers[`sec-websocket-key`],
-                        req.headers[`sec-websocket-protocol`],
-                        req.headers[`sec-websocket-extensions`],
+                        req.headers[`Sec-Websocket-Key`],
+                        req.headers[`Sec-Websocket-Protocol`],
+                        req.headers[`Sec-Websocket-Extensions`],
 
                         context
                     );

@@ -3,6 +3,6 @@
 
     "logger": {
         "folder": ".logs",
-        "interval": 1000
+        "interval": 3600
     }
 }

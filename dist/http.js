@@ -6,7 +6,7 @@ const logger = require(`./logger`);
 
 module.exports = function(app) {
     app.options(`/*`, function(res, req) {
-        const origin = req.getHeader(`origin`);
+        const origin = req.getHeader(`Origin`);
 
         res.writeHeader(`Vary`, `Origin`);
         res.writeHeader(`Access-Control-Allow-Methods`, `GET,POST,PATCH,PUT,DELETE`);
@@ -22,6 +22,8 @@ module.exports = function(app) {
         if (config.headers) {
             res.writeHeader(`Access-Control-Allow-Headers`, config.headers.join(`,`));
         };
+
+        res.writeHeader(`Access-Control-Allow-Headers`, [`Origin`, `Content-Type`, `X-Real-Ip`].join(`,`));
 
         return res.end();
     });
@@ -67,52 +69,39 @@ module.exports = function(app) {
                 }, app.http.methods[method][url].config.guard[1] * 1000);
             };
 
-            app[`_${method}`](url, async function(res, req) {
-                res.headers = [];
-
+            app[`_${method}`](url, function(res, req) {
                 res.onAborted(function() {
                     res.aborted = true;
                 });
 
-                res.setHeader = function(name, value) {
-                    if (res.aborted) {
-                        return false;
+                if (config.cors) {
+                    res.writeHeader(`Vary`, `Origin`);
+
+                    if (config.cors.origin && req.headers[`Origin`] && config.cors.origin.includes(req.headers[`Origin`])) {
+                        res.writeHeader(`Access-Control-Allow-Origin`, req.headers[`Origin`]);
                     };
 
-                    res.headers.push([name, value]);
+                    if (config.cors.credentials) {
+                        res.writeHeader(`Access-Control-Allow-Credentials`, `true`);
+                    };
                 };
 
-                res.send = function(data, status) {
+                res.send = function(dataOrStatus, onlyStatus) {
                     if (res.aborted) {
                         return false;
                     };
 
                     res.cork(function() {
-                        res.writeStatus(`${status || 200}`);
-
-                        if (config.cors) {
-                            if (config.cors.origin && req.headers[`origin`] && config.cors.origin.includes(req.headers[`origin`])) {
-                                res.writeHeader(`Access-Control-Allow-Origin`, req.headers[`origin`]);
-                            };
-
-                            if (config.cors.credentials) {
-                                res.writeHeader(`Access-Control-Allow-Credentials`, `true`);
-                            };
+                        if (!dataOrStatus || typeof dataOrStatus === `number`) {
+                            res.writeStatus(`${dataOrStatus || 204}`);
+                            return res.endWithoutBody();
                         };
 
-                        if (res.headers.length > 0) {
-                            for (const [name, value] of res.headers) {
-                                res.writeHeader(name, value);
-                            };
-                        };
+                        res.writeStatus(`${onlyStatus || 200}`);
 
-                        if (!data) {
-                            return res.end();
-                        };
-
-                        if (typeof data === `object`) {
+                        if (typeof dataOrStatus === `object`) {
                             res.writeHeader(`Content-Type`, `application/json`);
-                            return res.end(JSON.stringify(data));
+                            return res.end(JSON.stringify(dataOrStatus));
                         };
 
                         res.end(data);
@@ -124,8 +113,12 @@ module.exports = function(app) {
                         return false;
                     };
 
-                    res.setHeader(`Location`, url);
-                    res.send(true, 302);
+                    res.writeHeader(`Location`, url);
+                    res.writeStatus(`302`);
+
+                    res.cork(function() {
+                        res.endWithoutBody();
+                    });
                 };
 
                 req.url = url;
@@ -135,9 +128,9 @@ module.exports = function(app) {
                 req.schema = app.http.methods[method][url].schema;
 
                 req.headers = {
-                    "origin": req.getHeader(`origin`),
-                    "content-type": req.getHeader(`content-type`),
-                    "x-real-ip": req.getHeader(`x-real-ip`)
+                    "Origin": req.getHeader(`Origin`),
+                    "Content-Type": req.getHeader(`Content-Type`),
+                    "X-Real-Ip": req.getHeader(`X-Real-Ip`)
                 };
 
                 if (config.headers) {
@@ -151,7 +144,7 @@ module.exports = function(app) {
                 };
 
                 req.user = {
-                    ip: req.headers[`x-real-ip`] || `1.1.1.1`
+                    ip: req.headers[`X-Real-Ip`] || `1.1.1.1`
                 };
 
                 if (config.guard) {

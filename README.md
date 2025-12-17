@@ -243,13 +243,26 @@ options = {
 handler = async function(res, req) {
     // в req доступны: req.headers, req.user.ip, req.params, req.query, req.body, req.buffer (если buffer: true)
 
-    res.setHeader(`content-type`, `application/json`); // отложенная установка заголовка
+    res.writeHeader(`Content-Type`, `application/json`); // установка заголовка
+    res.writeStatus(`200`); // установка статуса
 
-    res.send({ hello: `world` }); // отправка JSON с кодом 200
-    res.send(`hello world`, 201); // отправка строки с кодом 201
-    res.send(null, 204); // отправка ответа без тела с кодом 204
+    res.cork(function() {
+        res.write();
+        res.end();
+        res.endWithoutBody();
+        res.tryEnd();
+        res.close();
+        /* и прочие, см. документацию uWebSockets.js */
+    });
 
-    res.redirect(`https://domain.com`); // ответ 302
+    res.send(); // ответ 204 без тела (тело полностью отсутствует)
+    res.send(403); // ответ 403 без тела (тело полностью отсутствует)
+    res.send(`string`); // ответ 200 с строкой `string`
+    res.send(`string`, 400); // ответ 400 с строкой `string`
+    res.send({ json: true }); // ответ 200 с json `{"json":true}` и заголовком `Content-Type`: `application/json`
+    res.send({ json: true }, 400); // ответ 400 с json `{"json":true}` и заголовком `Content-Type`: `application/json`
+
+    res.redirect(`https://domain.com`); // ответ 302 с заголовком `Location`: `https://domain.com`
 }
 ```
 
