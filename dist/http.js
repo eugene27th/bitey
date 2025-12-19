@@ -8,7 +8,7 @@ module.exports = function(app) {
     app.options(`/*`, function(res, req) {
         const origin = req.getHeader(`origin`);
 
-        res.writeHeader(`vary`, `origin`);
+        res.writeHeader(`vary`, `Origin`);
         res.writeHeader(`access-control-allow-methods`, `GET,POST,PATCH,PUT,DELETE`);
 
         if (config.cors?.origin && config.cors.origin.includes(origin)) {
@@ -79,20 +79,37 @@ module.exports = function(app) {
                         return false;
                     };
 
+                    let data;
+                    let status;
+
+                    if (!dataOrStatus || typeof dataOrStatus === `number`) {
+                        status = dataOrStatus || 204;
+                    } else {
+                        data = dataOrStatus;
+                        status = onlyStatus ? onlyStatus : 200;
+                    };
+
+                    res.writeStatus(`${status}`);
+
+                    if (config.cors) {
+                        res.writeHeader(`vary`, `Origin`);
+
+                        if (config.cors.origin && req.headers[`origin`] && config.cors.origin.includes(req.headers[`origin`])) {
+                            res.writeHeader(`access-control-allow-origin`, req.headers[`origin`]);
+                        };
+
+                        if (config.cors.credentials) {
+                            res.writeHeader(`access-control-allow-credentials`, `true`);
+                        };
+                    };
+
+                    if (data && typeof data === `object`) {
+                        data = JSON.stringify(data);
+                        res.writeHeader(`content-type`, `application/json`);
+                    };
+
                     res.cork(function() {
-                        if (!dataOrStatus || typeof dataOrStatus === `number`) {
-                            res.writeStatus(`${dataOrStatus || 204}`);
-                            return res.endWithoutBody();
-                        };
-
-                        res.writeStatus(`${onlyStatus || 200}`);
-
-                        if (typeof dataOrStatus === `object`) {
-                            res.writeHeader(`content-type`, `application/json`);
-                            return res.end(JSON.stringify(dataOrStatus));
-                        };
-
-                        res.end(dataOrStatus);
+                        data ? res.end(data) : res.endWithoutBody();
                     });
                 };
 
@@ -101,8 +118,8 @@ module.exports = function(app) {
                         return false;
                     };
 
-                    res.writeHeader(`location`, url);
                     res.writeStatus(`302`);
+                    res.writeHeader(`location`, url);
 
                     res.cork(function() {
                         res.endWithoutBody();
@@ -119,18 +136,6 @@ module.exports = function(app) {
                     "origin": req.getHeader(`origin`) || null,
                     "content-type": req.getHeader(`content-type`) || null,
                     "x-real-ip": req.getHeader(`x-real-ip`) || null // добавляется из nginx
-                };
-
-                if (config.cors) {
-                    res.writeHeader(`vary`, `origin`);
-
-                    if (config.cors.origin && req.headers[`origin`] && config.cors.origin.includes(req.headers[`origin`])) {
-                        res.writeHeader(`access-control-allow-origin`, req.headers[`origin`]);
-                    };
-
-                    if (config.cors.credentials) {
-                        res.writeHeader(`access-control-allow-credentials`, `true`);
-                    };
                 };
 
                 if (config.headers) {
