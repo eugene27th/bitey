@@ -92,7 +92,7 @@ module.exports = function(app) {
                             return res.end(JSON.stringify(dataOrStatus));
                         };
 
-                        res.end(data);
+                        res.end(dataOrStatus);
                     });
                 };
 
