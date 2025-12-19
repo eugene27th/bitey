@@ -8,24 +8,26 @@ module.exports = function(app) {
     app.options(`/*`, function(res, req) {
         const origin = req.getHeader(`origin`);
 
-        res.writeHeader(`vary`, `Origin`);
-        res.writeHeader(`access-control-allow-methods`, `GET,POST,PATCH,PUT,DELETE`);
+        res.cork(function() {
+            res.writeHeader(`vary`, `Origin`);
+            res.writeHeader(`access-control-allow-methods`, `GET,POST,PATCH,PUT,DELETE`);
 
-        if (config.cors?.origin && config.cors.origin.includes(origin)) {
-            res.writeHeader(`access-control-allow-origin`, origin);
-        };
+            if (config.cors?.origin && config.cors.origin.includes(origin)) {
+                res.writeHeader(`access-control-allow-origin`, origin);
+            };
 
-        if (config.cors?.credentials) {
-            res.writeHeader(`access-control-allow-credentials`, `true`);
-        };
+            if (config.cors?.credentials) {
+                res.writeHeader(`access-control-allow-credentials`, `true`);
+            };
 
-        if (config.headers) {
-            res.writeHeader(`access-control-allow-headers`, config.headers.join(`,`));
-        };
+            if (config.headers) {
+                res.writeHeader(`access-control-allow-headers`, config.headers.join(`,`));
+            };
 
-        res.writeHeader(`access-control-allow-headers`, [`origin`, `content-type`].join(`,`));
+            res.writeHeader(`access-control-allow-headers`, [`origin`, `content-type`].join(`,`));
 
-        return res.end();
+            res.end();
+        });
     });
 
     app.http = {
@@ -89,26 +91,26 @@ module.exports = function(app) {
                         status = onlyStatus ? onlyStatus : 200;
                     };
 
-                    res.writeStatus(`${status}`);
-
-                    if (config.cors) {
-                        res.writeHeader(`vary`, `Origin`);
-
-                        if (config.cors.origin && req.headers[`origin`] && config.cors.origin.includes(req.headers[`origin`])) {
-                            res.writeHeader(`access-control-allow-origin`, req.headers[`origin`]);
-                        };
-
-                        if (config.cors.credentials) {
-                            res.writeHeader(`access-control-allow-credentials`, `true`);
-                        };
-                    };
-
-                    if (data && typeof data === `object`) {
-                        data = JSON.stringify(data);
-                        res.writeHeader(`content-type`, `application/json`);
-                    };
-
                     res.cork(function() {
+                        res.writeStatus(`${status}`);
+
+                        if (config.cors) {
+                            res.writeHeader(`vary`, `Origin`);
+
+                            if (config.cors.origin && req.headers[`origin`] && config.cors.origin.includes(req.headers[`origin`])) {
+                                res.writeHeader(`access-control-allow-origin`, req.headers[`origin`]);
+                            };
+
+                            if (config.cors.credentials) {
+                                res.writeHeader(`access-control-allow-credentials`, `true`);
+                            };
+                        };
+
+                        if (data && typeof data === `object`) {
+                            data = JSON.stringify(data);
+                            res.writeHeader(`content-type`, `application/json`);
+                        };
+
                         data ? res.end(data) : res.endWithoutBody();
                     });
                 };
@@ -118,10 +120,9 @@ module.exports = function(app) {
                         return false;
                     };
 
-                    res.writeStatus(`302`);
-                    res.writeHeader(`location`, url);
-
                     res.cork(function() {
+                        res.writeStatus(`302`);
+                        res.writeHeader(`location`, url);
                         res.endWithoutBody();
                     });
                 };

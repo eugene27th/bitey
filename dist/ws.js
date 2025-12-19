@@ -120,26 +120,26 @@ module.exports = function(app) {
                         status = onlyStatus ? onlyStatus : 200;
                     };
 
-                    res.writeStatus(`${status}`);
-
-                    if (config.cors) {
-                        res.writeHeader(`vary`, `Origin`);
-
-                        if (config.cors.origin && req.headers[`origin`] && config.cors.origin.includes(req.headers[`origin`])) {
-                            res.writeHeader(`access-control-allow-origin`, req.headers[`origin`]);
-                        };
-
-                        if (config.cors.credentials) {
-                            res.writeHeader(`access-control-allow-credentials`, `true`);
-                        };
-                    };
-
-                    if (data && typeof data === `object`) {
-                        data = JSON.stringify(data);
-                        res.writeHeader(`content-type`, `application/json`);
-                    };
-
                     res.cork(function() {
+                        res.writeStatus(`${status}`);
+
+                        if (config.cors) {
+                            res.writeHeader(`vary`, `Origin`);
+
+                            if (config.cors.origin && req.headers[`origin`] && config.cors.origin.includes(req.headers[`origin`])) {
+                                res.writeHeader(`access-control-allow-origin`, req.headers[`origin`]);
+                            };
+
+                            if (config.cors.credentials) {
+                                res.writeHeader(`access-control-allow-credentials`, `true`);
+                            };
+                        };
+
+                        if (data && typeof data === `object`) {
+                            data = JSON.stringify(data);
+                            res.writeHeader(`content-type`, `application/json`);
+                        };
+
                         data ? res.end(data) : res.endWithoutBody();
                     });
                 };
