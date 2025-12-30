@@ -202,7 +202,8 @@ const form = function(req) {
                 "application/zip": `zip`,
                 "application/zip-compressed": `zip`,
                 "application/x-zip-compressed": `zip`,
-                "video/mp4": `mp4`
+                "video/mp4": `mp4`,
+                "audio/mpeg": `mp3`
             };
 
             let file = {
@@ -235,7 +236,7 @@ const form = function(req) {
                 };
             };
 
-            const value = req.buffer.from(part.data).toString();
+            const value = Buffer.from(part.data).toString();
 
             if (body[part.name]) {
                 return {
@@ -245,7 +246,7 @@ const form = function(req) {
 
             if (!validator.value(value, req.schema.body.entries[part.name])) {
                 return {
-                    error: `body raw is invalid > ${validator.error()}`
+                    error: `body raw is invalid > '${part.name}' is invalid > ${validator.error()}`
                 };
             };
 

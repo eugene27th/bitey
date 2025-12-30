@@ -82,7 +82,7 @@ module.exports = function(app) {
         },
         async function(res, req) {
             console.log(req);
-            res.send(null, 204);
+            res.send(204);
         }
     );
 
@@ -111,7 +111,7 @@ module.exports = function(app) {
         },
         async function(res, req) {
             console.log(req);
-            res.send(null, 204);
+            res.send(204);
         }
     );
 };

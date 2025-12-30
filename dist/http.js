@@ -8,9 +8,15 @@ module.exports = function(app) {
     app.options(`/*`, function(res, req) {
         const origin = req.getHeader(`origin`);
 
+        let headers = [`origin`, `content-type`];
+
+        if (config.headers) {
+            headers = headers.concat(config.headers);
+        };
+
         res.cork(function() {
             res.writeHeader(`vary`, `Origin`);
-            res.writeHeader(`access-control-allow-methods`, `GET,POST,PATCH,PUT,DELETE`);
+            res.writeHeader(`access-control-allow-methods`, `GET, POST, PATCH, PUT, DELETE`);
 
             if (config.cors?.origin && config.cors.origin.includes(origin)) {
                 res.writeHeader(`access-control-allow-origin`, origin);
@@ -20,11 +26,7 @@ module.exports = function(app) {
                 res.writeHeader(`access-control-allow-credentials`, `true`);
             };
 
-            if (config.headers) {
-                res.writeHeader(`access-control-allow-headers`, config.headers.join(`,`));
-            };
-
-            res.writeHeader(`access-control-allow-headers`, [`origin`, `content-type`].join(`,`));
+            res.writeHeader(`access-control-allow-headers`, headers.join(`, `));
 
             res.end();
         });
