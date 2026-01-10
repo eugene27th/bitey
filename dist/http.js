@@ -74,9 +74,15 @@ module.exports = function(app) {
             };
 
             app[`_${method}`](url, function(res, req) {
+                res.delayedHeaders = [];
+
                 res.onAborted(function() {
                     res.aborted = true;
                 });
+
+                res.setDelayedHeader = function(name, value) {
+                    res.delayedHeaders.push([name, value]);
+                };
 
                 res.send = function(dataOrStatus, onlyStatus) {
                     if (res.aborted) {
@@ -106,6 +112,10 @@ module.exports = function(app) {
                             if (config.cors.credentials) {
                                 res.writeHeader(`access-control-allow-credentials`, `true`);
                             };
+                        };
+
+                        for (const [name, value] of res.delayedHeaders) {
+                            res.writeHeader(name, value);
                         };
 
                         if (data && typeof data === `object`) {
