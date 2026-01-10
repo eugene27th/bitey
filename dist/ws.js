@@ -140,7 +140,7 @@ module.exports = function(app) {
                             res.writeHeader(`content-type`, `application/json`);
                         };
 
-                        data ? res.end(data) : res.endWithoutBody();
+                        data ? res.end(data) : res.end();
                     });
                 };
 

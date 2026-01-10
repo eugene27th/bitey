@@ -113,7 +113,7 @@ module.exports = function(app) {
                             res.writeHeader(`content-type`, `application/json`);
                         };
 
-                        data ? res.end(data) : res.endWithoutBody();
+                        data ? res.end(data) : res.end();
                     });
                 };
 
@@ -125,7 +125,7 @@ module.exports = function(app) {
                     res.cork(function() {
                         res.writeStatus(`302`);
                         res.writeHeader(`location`, url);
-                        res.endWithoutBody();
+                        res.end();
                     });
                 };
 
