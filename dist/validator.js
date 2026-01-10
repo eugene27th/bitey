@@ -32,11 +32,11 @@ const enums = {
 };
 
 
-const f_error = function() {
+const fError = function() {
     return error;
 };
 
-const f_value = function(value, schema) {
+const fValue = function(value, schema) {
     if (typeof value === `undefined`) {
         error = `missing`;
         return false;
@@ -411,7 +411,7 @@ const f_value = function(value, schema) {
     return true;
 };
 
-const f_array = function(array, schema) {
+const fArray = function(array, schema) {
     if (typeof array !== `object` || !Array.isArray(array)) {
         error = `array is invalid`;
         return false;
@@ -441,7 +441,7 @@ const f_array = function(array, schema) {
 
         if (schema.items) {
             if (schema.items.type === `array`) {
-                if (!f_array(item, schema.items)) {
+                if (!fArray(item, schema.items)) {
                     error = `array invalid in [${i}] > ${error}`;
                     return false;
                 };
@@ -450,7 +450,7 @@ const f_array = function(array, schema) {
             };
 
             if (schema.items.type === `object`) {
-                if (!f_json(item, schema.items)) {
+                if (!fJson(item, schema.items)) {
                     error = `array invalid in [${i}] > ${error}`;
                     return false;
                 };
@@ -458,7 +458,7 @@ const f_array = function(array, schema) {
                 continue;
             };
 
-            if (!f_value(item, schema.items)) {
+            if (!fValue(item, schema.items)) {
                 error = `array invalid in [${i}] > ${error}`;
                 return false;
             };
@@ -470,7 +470,7 @@ const f_array = function(array, schema) {
     return true;
 };
 
-const f_json = function(json, schema) {
+const fJson = function(json, schema) {
     if (typeof json !== `object`) {
         error = `JSON is invalid`;
         return false;
@@ -516,7 +516,7 @@ const f_json = function(json, schema) {
             };
 
             if (schema.entries[key].type === `array`) {
-                if (!f_array(value, schema.entries[key])) {
+                if (!fArray(value, schema.entries[key])) {
                     error = `'${key}' is invalid > ${error}`;
                     return false;
                 };
@@ -525,7 +525,7 @@ const f_json = function(json, schema) {
             };
 
             if (schema.entries[key].type === `object`) {
-                if (!f_json(value, schema.entries[key])) {
+                if (!fJson(value, schema.entries[key])) {
                     error = `'${key}' is invalid > ${error}`;
                     return false;
                 };
@@ -533,7 +533,7 @@ const f_json = function(json, schema) {
                 continue;
             };
 
-            if (!f_value(value, schema.entries[key])) {
+            if (!fValue(value, schema.entries[key])) {
                 error = `'${key}' is invalid > ${error}`;
                 return false;
             };
@@ -545,8 +545,8 @@ const f_json = function(json, schema) {
 
 
 module.exports = {
-    error: f_error,
-    value: f_value,
-    array: f_array,
-    json: f_json
+    error: fError,
+    value: fValue,
+    array: fArray,
+    json: fJson
 };

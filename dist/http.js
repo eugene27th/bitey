@@ -151,18 +151,16 @@ module.exports = function(app) {
                     };
                 };
 
-                req.user = {
-                    ip: req.headers[`x-real-ip`] || `1.1.1.1`
-                };
+                req.ip = req.headers[`x-real-ip`] || `1.1.1.1`;
 
                 if (config.guard) {
-                    if (app.http.requests[req.user.ip] === undefined) {
-                        app.http.requests[req.user.ip] = 1;
+                    if (app.http.requests[req.ip] === undefined) {
+                        app.http.requests[req.ip] = 1;
                     } else {
-                        app.http.requests[req.user.ip]++;
+                        app.http.requests[req.ip]++;
                     };
 
-                    if (app.http.requests[req.user.ip] > config.guard.http[0]) {
+                    if (app.http.requests[req.ip] > config.guard.http[0]) {
                         return res.send({
                             error: `ER_RATE_LIMIT`,
                             message: `${config.guard.http[0]} attempts per ${config.guard.http[1]} seconds`
@@ -171,13 +169,13 @@ module.exports = function(app) {
                 };
 
                 if (req.config?.guard) {
-                    if (app.http.methods[req.method][req.url].requests[req.user.ip] === undefined) {
-                        app.http.methods[req.method][req.url].requests[req.user.ip] = 1;
+                    if (app.http.methods[req.method][req.url].requests[req.ip] === undefined) {
+                        app.http.methods[req.method][req.url].requests[req.ip] = 1;
                     } else {
-                        app.http.methods[req.method][req.url].requests[req.user.ip]++;
+                        app.http.methods[req.method][req.url].requests[req.ip]++;
                     };
 
-                    if (app.http.methods[req.method][req.url].requests[req.user.ip] > req.config.guard[0]) {
+                    if (app.http.methods[req.method][req.url].requests[req.ip] > req.config.guard[0]) {
                         return res.send({
                             error: `ER_RATE_LIMIT`,
                             message: `${req.config.guard[0]} attempts per ${req.config.guard[1]} seconds on this route`
@@ -239,7 +237,7 @@ module.exports = function(app) {
                         };
 
                         if (config.logger) {
-                            let logText = `http:${req.method} > ${req.user.ip} > ${req.url}`;
+                            let logText = `http:${req.method} > ${req.ip} > ${req.url}`;
 
                             if (req.config?.log?.headers) {
                                 logText += ` > headers: ${JSON.stringify(req.headers)}`;

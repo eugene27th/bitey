@@ -54,18 +54,18 @@ module.exports = function(app) {
                 console.log(`ws debug: + ws connected`);
                 
                 if (config.guard) {
-                    if (app.ws.connections[ws.user.ip] === undefined) {
-                        app.ws.connections[ws.user.ip] = 1;
+                    if (app.ws.connections[ws.ip] === undefined) {
+                        app.ws.connections[ws.ip] = 1;
                     } else {
-                        app.ws.connections[ws.user.ip]++;
+                        app.ws.connections[ws.ip]++;
                     };
                 };
 
                 if (ws.config?.guard) {
-                    if (app.ws.routes[ws.url].connections[ws.user.ip] === undefined) {
-                        app.ws.routes[ws.url].connections[ws.user.ip] = 1;
+                    if (app.ws.routes[ws.url].connections[ws.ip] === undefined) {
+                        app.ws.routes[ws.url].connections[ws.ip] = 1;
                     } else {
-                        app.ws.routes[ws.url].connections[ws.user.ip]++;
+                        app.ws.routes[ws.url].connections[ws.ip]++;
                     };
                 };
 
@@ -77,21 +77,21 @@ module.exports = function(app) {
                 console.log('ws debug: - ws closed');
 
                 if (config.guard) {
-                    if (app.ws.connections[ws.user.ip] !== undefined) {
-                        if (app.ws.connections[ws.user.ip] > 1) {
-                            app.ws.connections[ws.user.ip]--;
+                    if (app.ws.connections[ws.ip] !== undefined) {
+                        if (app.ws.connections[ws.ip] > 1) {
+                            app.ws.connections[ws.ip]--;
                         } else {
-                            delete app.ws.connections[ws.user.ip];
+                            delete app.ws.connections[ws.ip];
                         };
                     };
                 };
 
                 if (ws.config?.guard) {
-                    if (app.ws.routes[ws.url].connections[ws.user.ip] !== undefined) {
-                        if (app.ws.routes[ws.url].connections[ws.user.ip] > 1) {
-                            app.ws.routes[ws.url].connections[ws.user.ip]--;
+                    if (app.ws.routes[ws.url].connections[ws.ip] !== undefined) {
+                        if (app.ws.routes[ws.url].connections[ws.ip] > 1) {
+                            app.ws.routes[ws.url].connections[ws.ip]--;
                         } else {
-                            delete app.ws.routes[ws.url].connections[ws.user.ip];
+                            delete app.ws.routes[ws.url].connections[ws.ip];
                         };
                     };
                 };
@@ -168,18 +168,16 @@ module.exports = function(app) {
                     };
                 };
 
-                req.user = {
-                    ip: req.headers[`x-real-ip`] || `1.1.1.1`
-                };
+                req.ip = req.headers[`x-real-ip`] || `1.1.1.1`;
 
-                if (app.ws.connections[req.user.ip] > config.guard.ws[0]) {
+                if (app.ws.connections[req.ip] > config.guard.ws[0]) {
                     return res.send({
                         error: `ER_RATE_LIMIT`,
                         message: `${config.guard.ws[0]} connections`
                     }, 429);
                 };
 
-                if (app.ws.routes[req.url].connections[req.user.ip] > req.config.guard[0]) {
+                if (app.ws.routes[req.url].connections[req.ip] > req.config.guard[0]) {
                     return res.send({
                         error: `ER_RATE_LIMIT`,
                         message: `${req.config.guard[0]} connections`
@@ -187,7 +185,7 @@ module.exports = function(app) {
                 };
 
                 if (config.logger) {
-                    let logText = `ws:connection > ${req.user.ip} > ${req.url}`;
+                    let logText = `ws:connection > ${req.ip} > ${req.url}`;
 
                     if (req.config?.log?.headers) {
                         logText += ` > headers: ${JSON.stringify(req.headers)}`;
@@ -230,11 +228,11 @@ module.exports = function(app) {
                 return res.cork(function() {
                     res.upgrade(
                         {
+                            ip: req.ip,
                             url: req.url,
                             headers: req.headers,
                             config: req.config,
-                            schema: req.schema,
-                            user: req.user
+                            schema: req.schema
                         },
 
                         req.headers[`sec-websocket-key`],
@@ -250,13 +248,13 @@ module.exports = function(app) {
                 ws.message = isBinary ? message : Buffer.from(message).toString();
 
                 if (config.guard) {
-                    if (app.ws.messages[ws.user.ip] === undefined) {
-                        app.ws.messages[ws.user.ip] = 1;
+                    if (app.ws.messages[ws.ip] === undefined) {
+                        app.ws.messages[ws.ip] = 1;
                     } else {
-                        app.ws.messages[ws.user.ip]++;
+                        app.ws.messages[ws.ip]++;
                     };
 
-                    if (app.ws.messages[ws.user.ip] > config.guard.ws[1][0]) {
+                    if (app.ws.messages[ws.ip] > config.guard.ws[1][0]) {
                         return ws.send(JSON.stringify({
                             error: `ER_RATE_LIMIT`,
                             message: `${config.guard.ws[1][0]} attempts per ${config.guard.ws[1][1]} seconds`
@@ -265,13 +263,13 @@ module.exports = function(app) {
                 };
 
                 if (ws.config?.guard) {
-                    if (app.ws.routes[ws.url].messages[ws.user.ip] === undefined) {
-                        app.ws.routes[ws.url].messages[ws.user.ip] = 1;
+                    if (app.ws.routes[ws.url].messages[ws.ip] === undefined) {
+                        app.ws.routes[ws.url].messages[ws.ip] = 1;
                     } else {
-                        app.ws.routes[ws.url].messages[ws.user.ip]++;
+                        app.ws.routes[ws.url].messages[ws.ip]++;
                     };
 
-                    if (app.ws.routes[ws.url].messages[ws.user.ip] > ws.config.guard[1][0]) {
+                    if (app.ws.routes[ws.url].messages[ws.ip] > ws.config.guard[1][0]) {
                         return ws.send(JSON.stringify({
                             error: `ER_RATE_LIMIT`,
                             message: `${ws.config.guard[1][0]} attempts per ${ws.config.guard[1][1]} seconds on this route`
@@ -291,7 +289,7 @@ module.exports = function(app) {
                 };
 
                 if (config.logger) {
-                    let logText = `ws:message > ${ws.user.ip} > ${ws.url}`;
+                    let logText = `ws:message > ${ws.ip} > ${ws.url}`;
 
                     if (ws.config?.log?.payload && ws.schema) {
                         logText += ` > payload: ${JSON.stringify({ message: ws.message })}`;
