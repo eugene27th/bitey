@@ -243,10 +243,18 @@ options = {
 handler = async function(res, req) {
     // в req доступны: req.headers, req.user.ip, req.params, req.query, req.body, req.buffer (если buffer: true)
 
-    res.writeHeader(`Content-Type`, `application/json`); // установка заголовка
-    res.writeStatus(`200`); // установка статуса
+    // отложенная установка заголовка. отправится при использовании res.send()
+    // это нужно для установки заголовока до установки статуса ответа
+    res.setDelayedHeader(`Content-Type`, `application/json`); 
 
     res.cork(function() {
+        // установка статуса ответа
+        // должен быть установлен самым первым в ответе
+        res.writeStatus(`200`);
+
+        // установка заголовка
+        res.writeHeader(`Content-Type`, `application/json`);
+
         res.write();
         res.end();
         res.endWithoutBody();
