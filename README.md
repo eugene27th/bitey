@@ -60,12 +60,13 @@ npm i github:eugene27th/bitey
         "user": "username",
         "database": "databasename",
         "password": "password",
-        "connectionLimit": 10,
+        "ssl": false,
         "metaAsArray": true,
         "insertIdAsNumber": true,
-        "waitForConnections": true,
-        "queueLimit": 0,
-        "multipleStatements": true
+        "allowPublicKeyRetrieval": true,
+        "connectionLimit": 50,
+        "connectTimeout": 5000,
+        "acquireTimeout": 10000
         // и прочие
     },
     
