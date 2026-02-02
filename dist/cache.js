@@ -60,19 +60,19 @@ const set = function(keys, value, ttl = dttl) {
 const get = function(key) {
     const path = parse(key);
 
-    if (!storage[path.folder]) {
+    if (!(path.folder in storage)) {
         return null;
     };
 
     if (!path.key) {
         return storage[path.folder];
     };
-
-    const data = storage[path.folder][path.key];
-
-    if (data === undefined) {
+    
+    if (!(path.key in storage[path.folder])) {
         return null;
     };
+
+    const data = storage[path.folder][path.key];
 
     if ((Math.round((new Date().getTime()) / 1000)) > data.expire) {
         delete storage[path.folder][path.key];
