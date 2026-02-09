@@ -1,4 +1,11 @@
 /*
+    required `mysql` section in config.json
+*/
+
+import { mysqlExe, mysqlGet, mysqlInsert, mysqlUpdate, mysqlDelete } from "bitey/mysql";
+
+
+/*
     args: (sql query, values, options)
 
     options:
@@ -10,7 +17,7 @@
         SELECT * FROM accounts WHERE `username` = 'salwador'
 */
 
-const exe = await bitey.mysql.exe(`SELECT * FROM accounts WHERE username = ?`, [`salwador`], { array: true });
+const exeResult = await mysqlExe(`SELECT * FROM accounts WHERE username = ?`, [`salwador`], { array: true });
 
 
 /*
@@ -28,7 +35,7 @@ const exe = await bitey.mysql.exe(`SELECT * FROM accounts WHERE username = ?`, [
         SELECT * FROM accounts WHERE `username` = 'salwador'
 */
 
-const get = await bitey.mysql.get(`accounts`, {
+const getResult = await mysqlGet(`accounts`, {
     username: `salwador`
 }, {
     array: true
@@ -48,7 +55,7 @@ const get = await bitey.mysql.get(`accounts`, {
         INSERT INTO accounts SET `username` = 'salwador', `edited` = '1234567890' ON DUPLICATE KEY UPDATE `edited` = '1234567890'
 */
 
-const ins = await bitey.mysql.ins(`accounts`, {
+const insertResult = await mysqlInsert(`accounts`, {
     username: `salwador`,
     edited: `1234567890`
 }, {
@@ -69,7 +76,7 @@ const ins = await bitey.mysql.ins(`accounts`, {
         UPDATE accounts SET `username` = 'salwador' WHERE `id` = '1'
 */
 
-const upd = await bitey.mysql.upd(`accounts`, { id: 1 }, {
+const updateResult = await mysqlUpdate(`accounts`, { id: 1 }, {
     username: `salwador`
 });
 
@@ -84,4 +91,4 @@ const upd = await bitey.mysql.upd(`accounts`, { id: 1 }, {
         DELETE FROM accounts WHERE `id` = '1'
 */
 
-const del = await bitey.mysql.del(`accounts`, { id: 1 });
+const deleteResult = await mysqlDelete(`accounts`, { id: 1 });

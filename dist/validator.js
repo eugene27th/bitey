@@ -1,28 +1,6 @@
 let error = null;
 
-const patterns = {
-    eng: /^[a-zA-Z0-9\s]+$/,
-    rus: /^[а-яА-ЯёЁ0-9\s]+$/,
-    engrus: /^[a-zA-Zа-яА-ЯёЁ0-9\s]+$/,
-    date: `[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])`,
-    datetime: `[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]`,
-    timestamp: `^[0-9]{10}$`,
-    urn: /^[a-zA-Z0-9_-]+$/,
-    url: /^(?:https?|ftp):\/\/(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u{00a1}-\u{ffff}]+-)*[a-z0-9\u{00a1}-\u{ffff}]+)(?:\.(?:[a-z0-9\u{00a1}-\u{ffff}]+-)*[a-z0-9\u{00a1}-\u{ffff}]+)*(?:\.(?:[a-z\u{00a1}-\u{ffff}]{2,})))(?::\d{2,5})?(?:\/[^\s]*)?$/iu,
-    domain: `(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]`,
-    uuid: `^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$`,
-    uuidts: `^[0-9a-f]{13}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{17}$`,
-    filename: `^[0-9a-f]{13}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{17}.(png|jpeg|jpg|webp|gif|zip|txt)$`,
-    email: /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i,
-    phone: `^[0-9]{6,12}$`,
-    ipv4: /^(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/,
-    ipv6: /^((([0-9a-f]{1,4}:){7}([0-9a-f]{1,4}|:))|(([0-9a-f]{1,4}:){6}(:[0-9a-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9a-f]{1,4}:){5}(((:[0-9a-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9a-f]{1,4}:){4}(((:[0-9a-f]{1,4}){1,3})|((:[0-9a-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){3}(((:[0-9a-f]{1,4}){1,4})|((:[0-9a-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){2}(((:[0-9a-f]{1,4}){1,5})|((:[0-9a-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){1}(((:[0-9a-f]{1,4}){1,6})|((:[0-9a-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9a-f]{1,4}){1,7})|((:[0-9a-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))$/i
-};
-
 const enums = {
-    mimetype: [
-        `image/png`, `image/jpeg`, `image/webp`, `image/gif`, `image/svg+xml`, `application/zip`, `application/zip-compressed`, `application/x-zip-compressed`, `video/mp4`
-    ],
     country: [
         `AD`, `AE`, `AF`, `AG`, `AI`, `AL`, `AM`, `AO`, `AQ`, `AR`, `AS`, `AT`, `AU`, `AW`, `AX`, `AZ`, `BA`, `BB`, `BD`, `BE`, `BF`, `BG`, `BH`, `BI`, `BJ`, `BL`, `BM`, `BN`, `BO`, `BQ`, `BR`, `BS`, `BT`, `BV`, `BW`, `BY`, `BZ`, `CA`, `CC`, `CD`, `CF`, `CG`, `CH`, `CI`, `CK`, `CL`, `CM`, `CN`, `CO`, `CR`, `CU`, `CV`, `CW`, `CX`, `CY`, `CZ`, `DE`, `DJ`, `DK`, `DM`, `DO`, `DZ`, `EC`, `EE`, `EG`, `EH`, `ER`, `ES`, `ET`, `FI`, `FJ`, `FK`, `FM`, `FO`, `FR`, `GA`, `GB`, `GD`, `GE`, `GF`, `GG`, `GH`, `GI`, `GL`, `GM`, `GN`, `GP`, `GQ`, `GR`, `GS`, `GT`, `GU`, `GW`, `GY`, `HK`, `HM`, `HN`, `HR`, `HT`, `HU`, `ID`, `IE`, `IL`, `IM`, `IN`, `IO`, `IQ`, `IR`, `IS`, `IT`, `JE`, `JM`, `JO`, `JP`, `KE`, `KG`, `KH`, `KI`, `KM`, `KN`, `KP`, `KR`, `KW`, `KY`, `KZ`, `LA`, `LB`, `LC`, `LI`, `LK`, `LR`, `LS`, `LT`, `LU`, `LV`, `LY`, `MA`, `MC`, `MD`, `ME`, `MF`, `MG`, `MH`, `MK`, `ML`, `MM`, `MN`, `MO`, `MP`, `MQ`, `MR`, `MS`, `MT`, `MU`, `MV`, `MW`, `MX`, `MY`, `MZ`, `NA`, `NC`, `NE`, `NF`, `NG`, `NI`, `NL`, `NO`, `NP`, `NR`, `NU`, `NZ`, `OM`, `PA`, `PE`, `PF`, `PG`, `PH`, `PK`, `PL`, `PM`, `PN`, `PR`, `PS`, `PT`, `PW`, `PY`, `QA`, `RE`, `RO`, `RS`, `RU`, `RW`, `SA`, `SB`, `SC`, `SD`, `SE`, `SG`, `SH`, `SI`, `SJ`, `SK`, `SL`, `SM`, `SN`, `SO`, `SR`, `SS`, `ST`, `SV`, `SX`, `SY`, `SZ`, `TC`, `TD`, `TF`, `TG`, `TH`, `TJ`, `TK`, `TL`, `TM`, `TN`, `TO`, `TR`, `TT`, `TV`, `TW`, `TZ`, `UA`, `UG`, `UM`, `US`, `UY`, `UZ`, `VA`, `VC`, `VE`, `VG`, `VI`, `VN`, `VU`, `WF`, `WS`, `YE`, `YT`, `ZA`, `ZM`, `ZW`
     ],
@@ -31,12 +9,17 @@ const enums = {
     ]
 };
 
+const patterns = {
+    uuid: `^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$`,
+    uuidts: `^[0-9a-f]{13}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{17}$`,
+};
 
-const fError = function() {
+
+export const getValidationError = function() {
     return error;
 };
 
-const fValue = function(value, schema) {
+export const isValidValue = function(value, schema) {
     if (typeof value === `undefined`) {
         error = `missing`;
         return false;
@@ -411,7 +394,7 @@ const fValue = function(value, schema) {
     return true;
 };
 
-const fArray = function(array, schema) {
+export const isValidArray = function(array, schema) {
     if (typeof array !== `object` || !Array.isArray(array)) {
         error = `array is invalid`;
         return false;
@@ -441,7 +424,7 @@ const fArray = function(array, schema) {
 
         if (schema.items) {
             if (schema.items.type === `array`) {
-                if (!fArray(item, schema.items)) {
+                if (!isValidArray(item, schema.items)) {
                     error = `array invalid in [${i}] > ${error}`;
                     return false;
                 };
@@ -450,7 +433,7 @@ const fArray = function(array, schema) {
             };
 
             if (schema.items.type === `object`) {
-                if (!fJson(item, schema.items)) {
+                if (!isValidObject(item, schema.items)) {
                     error = `array invalid in [${i}] > ${error}`;
                     return false;
                 };
@@ -458,7 +441,7 @@ const fArray = function(array, schema) {
                 continue;
             };
 
-            if (!fValue(item, schema.items)) {
+            if (!isValidValue(item, schema.items)) {
                 error = `array invalid in [${i}] > ${error}`;
                 return false;
             };
@@ -470,7 +453,7 @@ const fArray = function(array, schema) {
     return true;
 };
 
-const fJson = function(json, schema) {
+export const isValidObject = function(json, schema) {
     if (typeof json !== `object`) {
         error = `JSON is invalid`;
         return false;
@@ -516,7 +499,7 @@ const fJson = function(json, schema) {
             };
 
             if (schema.entries[key].type === `array`) {
-                if (!fArray(value, schema.entries[key])) {
+                if (!isValidArray(value, schema.entries[key])) {
                     error = `'${key}' is invalid > ${error}`;
                     return false;
                 };
@@ -525,7 +508,7 @@ const fJson = function(json, schema) {
             };
 
             if (schema.entries[key].type === `object`) {
-                if (!fJson(value, schema.entries[key])) {
+                if (!isValidObject(value, schema.entries[key])) {
                     error = `'${key}' is invalid > ${error}`;
                     return false;
                 };
@@ -533,7 +516,7 @@ const fJson = function(json, schema) {
                 continue;
             };
 
-            if (!fValue(value, schema.entries[key])) {
+            if (!isValidValue(value, schema.entries[key])) {
                 error = `'${key}' is invalid > ${error}`;
                 return false;
             };
@@ -541,12 +524,4 @@ const fJson = function(json, schema) {
     };
 
     return true;
-};
-
-
-module.exports = {
-    error: fError,
-    value: fValue,
-    array: fArray,
-    json: fJson
 };

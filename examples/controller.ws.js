@@ -1,3 +1,7 @@
+/*
+    middleware functions
+*/
+
 const middlewareUpgrade = async function(res, req, next) {
     req.middlewareUpgrade = true;
     return next();
@@ -9,25 +13,29 @@ const middlewareMessage = async function(ws, next) {
 };
 
 
-module.exports = function (app) {
+export default function (app) {
     app.message(`/pubsub`,
         {
             config: {
                 guard: [5, [15, 10]], // limit [n connections, [n messages, in n seconds]]
                 log: {
-                    headers: true,
-                    payload: true,
-                    messages: true,
-                    connections: true
+                    headers: true, // log headers (when creating a connection)
+                    payload: true, // log body payload (when creating a connection)
+                    messages: true, // log messages
+                    connections: true // log connections
                 }
             },
             middlewares: {
-                upgrade: [middlewareUpgrade], // executed in upgrade when creating a connection
-                message: [middlewareMessage] // executed before final handler in message
+                upgrade: [middlewareUpgrade], // array of middleware functions. executed in upgrade when creating a connection
+                message: [middlewareMessage] // array of middleware functions. executed before final handler in message
             },
             schema: {
-                min: 1, max: 2,
+                min: 1, max: 2, // optional
                 entries: {
+                    /*
+                        simple basic examples.
+                        you will find detailed information about the types and parameters in the files `validator.js` or `controller.http.js`
+                    */
                     action: {
                         type: `enum`, enum: [`sub`, `unsub`]
                     },
@@ -40,6 +48,16 @@ module.exports = function (app) {
         },
         async function(ws) {
             console.log(ws);
+            
+            /*
+                ws: {
+                    ...,
+                    message: {
+                        action: `sub`,
+                        data: `value`
+                    }
+                }
+            */
 
             if (ws.message.action === `sub`) {
                 ws.subscribe(`room:1`);
@@ -49,16 +67,22 @@ module.exports = function (app) {
                 ws.unsubscribe(`room:1`);
             };
 
+            /*
+                sending a response when creating a connection
+            */
             ws.send(JSON.stringify({
-                type: `send`,
+                type: `send`, // just an example
                 action: ws.message.action || null
             }));
         }
     );
 
     setInterval(function() {
+        /*
+            publishing from the server
+        */
         return app.publish(`room:1`, JSON.stringify({
-            type: `publish`,
+            type: `publish`, // just an example
             message: `something update`
         }));
     }, 10 * 1000);

@@ -1,120 +1,54 @@
-let storage = {};
-const dttl = 7200;
+const storage = new Map();
 
 
-const parse = function(key) {
-    let folder = `default`;
-    const path = key.split(`:`);
-
-    if (path.length < 2 || path[0].length < 1) {
-        return {
-            folder: folder,
-            key: path
-        };
-    };
-
-    folder = path[0];
-    key = path.splice(1).join();
-
-    if (key.length < 1) {
-        return {
-            folder: folder
-        };
-    };
-
-    return {
-        folder: folder,
-        key: key
-    };
-};
-
-const set = function(keys, value, ttl = dttl) {
+export const setCache = function(keys, value, ttl = 3600) {
     if (!Array.isArray(keys)) {
         keys = [keys];
     };
 
-    let data = {
-        value: value,
+    const data = {
+        value: structuredClone(value),
         expire: (Math.round((new Date().getTime()) / 1000)) + ttl
     };
 
-    if (typeof value === `object` && !Array.isArray(value) && value !== null) {
-        data.value = structuredClone(value);
-    };
-
-    for (let i = 0; i < keys.length; i++) {
-        const { key, folder } = parse(keys[i]);
-
-        if (storage[folder]) {
-            storage[folder][key] = data;
-        } else {
-            storage[folder] = {
-                [key]: data
-            };
-        };
+    for (const key of keys) {
+        storage.set(key, data);
     };
 
     return value;
 };
 
-const get = function(key) {
-    const path = parse(key);
+export const getCache = function(key) {
+    const entry = storage.get(key);
 
-    if (!(path.folder in storage)) {
+    if (!entry) {
         return null;
     };
 
-    if (!path.key) {
-        return storage[path.folder];
-    };
-    
-    if (!(path.key in storage[path.folder])) {
+    if ((Math.round((new Date().getTime()) / 1000)) > entry.expire) {
+        storage.delete(key);
         return null;
     };
 
-    const data = storage[path.folder][path.key];
-
-    if ((Math.round((new Date().getTime()) / 1000)) > data.expire) {
-        delete storage[path.folder][path.key];
-        return null;
-    };
-
-    return structuredClone(data.value);
+    return structuredClone(entry.value);
 };
 
-const del = function(keys, deleq = false) {
-    if (!Array.isArray(keys)) {
-        keys = [keys];
-    };
+export const deleteCache = function(keysOrPattern) {
+    if (typeof keysOrPattern === `string`) {
+        if (keysOrPattern.includes(`*`)) {
+            const regex = new RegExp(`^${keysOrPattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, `.*`)}$`);
 
-    for (const key of keys) {
-        const path = parse(key);
-
-        if (!storage[path.folder]) {
-            continue;
-        };
-
-        if (!path.key) {
-            delete storage[path.folder];
-            continue;
-        };
-
-        if (deleq) {
-            const value = storage[path.folder][path.key];
-
-            for (const [folder, keys] of Object.entries(storage)) {
-                for (const [key, data] of Object.entries(keys)) {
-                    if (JSON.stringify(value) === JSON.stringify(data)) {
-                        delete storage[folder][key];
-                    };
+            for (const key of storage.keys()) {
+                if (regex.test(key)) {
+                    storage.delete(key);
                 };
             };
         } else {
-            delete storage[path.folder][path.key];
+            storage.delete(keysOrPattern);
         };
-
-        if (Object.keys(storage[path.folder]).length < 1) {
-            delete storage[path.folder];
+    } else if (Array.isArray(keysOrPattern)) {
+        for (const key of keysOrPattern) {
+            storage.delete(key);
         };
     };
 
@@ -123,22 +57,9 @@ const del = function(keys, deleq = false) {
 
 
 setInterval(function() {
-    for (const [folder, keys] of Object.entries(storage)) {
-        for (const [key, data] of Object.entries(keys)) {
-            if ((Math.round((new Date().getTime()) / 1000)) > data.expire) {
-                delete storage[folder][key];
-
-                if (Object.keys(keys).length < 1) {
-                    delete storage[folder];
-                };
-            };
-        }
+    for (const [key, entry] of storage.entries()) {
+        if ((Math.round((new Date().getTime()) / 1000)) > entry.expire) {
+            storage.delete(key);
+        };
     };
-}, 1800 * 1000);
-
-
-module.exports = {
-    get,
-    set,
-    del
-};
+}, 600 * 1000);

@@ -1,14 +1,34 @@
 {
     "name": "bitey",
+    "type": "module",
+    "version": "0.2.0",
     "author": "eugene27th",
-    "version": "0.1.3",
-    "main": "index.js",
     "exports": {
-        "require": "./index.js"
+        ".": {
+            "import": "./index.js"
+        },
+        "./cache": {
+            "import": "./dist/cache.js"
+        },
+        "./error": {
+            "import": "./dist/error.js"
+        },
+        "./mysql": {
+            "import": "./dist/mysql.js"
+        },
+        "./redis": {
+            "import": "./dist/redis.js"
+        },
+        "./utils": {
+            "import": "./dist/utils.js"
+        },
+        "./validator": {
+            "import": "./dist/validator.js"
+        }
     },
     "dependencies": {
-        "@redis/client": "^1.6.0",
-        "mariadb": "^3.4.1",
-        "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.56.0"
+        "mariadb": "^3.4.5",
+        "@redis/client": "^5.10.0",
+        "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.57.0"
     }
 }

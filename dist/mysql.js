@@ -1,13 +1,13 @@
-const config = require(`${process.cwd()}/config.json`);
+import { getConfig } from "./utils.js";
 
-if (!config.mysql) {
-    return module.exports = null;
-};
+const config = getConfig();
 
-const connection = require(`mariadb`).createPool(config.mysql);
+import { createPool } from "mariadb";
+
+const connection = createPool(config.mysql);
 
 
-const exe = async function(query, values, params) {
+export const mysqlExe = async function(query, values, params) {
     const [result, fields] = await connection.execute(query, values || []);
 
     if (!Array.isArray(result)) {
@@ -80,7 +80,7 @@ const exe = async function(query, values, params) {
     return result;
 };
 
-const get = async function(table, conditions, params) {
+export const mysqlGet = async function(table, conditions, params) {
     let query = `SELECT * FROM ${table}`;
     let values = [];
 
@@ -95,10 +95,10 @@ const get = async function(table, conditions, params) {
         query = query.slice(0, -5);
     };
 
-    return await exe(query, values, params);
+    return await mysqlExe(query, values, params);
 };
 
-const ins = async function(table, data, params) {
+export const mysqlInsert = async function(table, data, params) {
     let query = `INSERT INTO ${table} SET `;
     let values = [];
 
@@ -124,10 +124,10 @@ const ins = async function(table, data, params) {
         query = query.slice(0, -2);
     };
 
-    return await exe(query, values, params);
+    return await mysqlExe(query, values, params);
 };
 
-const upd = async function(table, conditions, data) {
+export const mysqlUpdate = async function(table, conditions, data) {
     let query = `UPDATE ${table} SET `;
     let values = [];
 
@@ -143,10 +143,10 @@ const upd = async function(table, conditions, data) {
         values.push(value);
     };
 
-    return await exe(query.slice(0, -5), values);
+    return await mysqlExe(query.slice(0, -5), values);
 };
 
-const del = async function(table, conditions) {
+export const mysqlDelete = async function(table, conditions) {
     let query = `DELETE FROM ${table} WHERE `;
     let values = [];
 
@@ -155,14 +155,5 @@ const del = async function(table, conditions) {
         values.push(value);
     };
 
-    return await exe(query.slice(0, -5), values);
-};
-
-
-module.exports = {
-    exe,
-    get,
-    ins,
-    upd,
-    del
+    return await mysqlExe(query.slice(0, -5), values);
 };

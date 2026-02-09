@@ -1,10 +1,11 @@
-const config = require(`${process.cwd()}/config.json`);
+import { getConfig } from "./utils.js";
+import { appendLog } from "./logger.js";
+import { parseParams, parseQuery, parseBody } from "./parser.js";
 
-const parser = require(`./parser`);
-const logger = require(`./logger`);
+const config = getConfig();
 
 
-module.exports = function(app) {
+export const httpSetup = function(app) {
     app.options(`/*`, function(res, req) {
         const origin = req.getHeader(`origin`);
 
@@ -43,7 +44,7 @@ module.exports = function(app) {
         requests: {}
     };
 
-    if (config.guard) {
+    if (config.guard?.http) {
         setInterval(() => {
             app.http.requests = {};
         }, config.guard.http[1] * 1000);
@@ -163,7 +164,7 @@ module.exports = function(app) {
 
                 req.ip = req.headers[`x-real-ip`] || `1.1.1.1`;
 
-                if (config.guard) {
+                if (config.guard?.http) {
                     if (app.http.requests[req.ip] === undefined) {
                         app.http.requests[req.ip] = 1;
                     } else {
@@ -194,7 +195,7 @@ module.exports = function(app) {
                 };
 
                 if (app.http.methods[method][url].schema?.params) {
-                    req.params = parser.params(req);
+                    req.params = parseParams(req);
 
                     if (req.params.error) {
                         return res.send({
@@ -205,7 +206,7 @@ module.exports = function(app) {
                 };
 
                 if (app.http.methods[method][url].schema?.query) {
-                    req.query = parser.query(req);
+                    req.query = parseQuery(req);
 
                     if (req.query.error) {
                         return res.send({
@@ -232,7 +233,7 @@ module.exports = function(app) {
                         };
 
                         if (app.http.methods[method][url].schema?.body) {
-                            req.body = parser.body(req);
+                            req.body = parseBody(req);
 
                             if (req.body.error) {
                                 return res.send({
@@ -246,19 +247,17 @@ module.exports = function(app) {
                             delete req.buffer;
                         };
 
-                        if (config.logger) {
-                            let logText = `http:${req.method} > ${req.ip} > ${req.url}`;
+                        let logText = `http:${req.method} > ${req.ip} > ${req.url}`;
 
-                            if (req.config?.log?.headers) {
-                                logText += ` > headers: ${JSON.stringify(req.headers)}`;
-                            };
-
-                            if (req.config?.log?.payload && req.schema) {
-                                logText += ` > payload: ${JSON.stringify({ params: req.params || null, query: req.query || null, body: req.body || null })}`;
-                            };
-
-                            logger.log(logText);
+                        if (req.config?.log?.headers) {
+                            logText += ` > headers: ${JSON.stringify(req.headers)}`;
                         };
+
+                        if (req.config?.log?.payload && req.schema) {
+                            logText += ` > payload: ${JSON.stringify({ params: req.params || null, query: req.query || null, body: req.body || null })}`;
+                        };
+
+                        appendLog(logText);
 
                         let steps = app.http.methods[method][url].handlers.length - 1;
 

@@ -1,39 +1,43 @@
-const config = require(`${process.cwd()}/config.json`);
+import { join as joinPath } from "path";
+import { getConfig, getDate, getTime } from "./utils.js";
+import { mkdir as fsMakeDir, appendFile as fsAppendFile, access as fsAccess } from "fs/promises";
 
-const utils = require(`./utils`);
-const fs = require(`fs/promises`);
+const config = getConfig();
 
+const logFolder = config.logger?.folder || `.logs`;
+const logInterval = config.logger?.interval * 1000 || 10000;
 
 let stack = ``;
 
-const write = async function() {
+
+const writeLogToFile = async function() {
     if (stack === ``) {
         return false;
     };
 
-    const path = `${config.logger.folder}/${utils.get.date(`m.y`)}`;
+    const fileDir = joinPath(logFolder, getDate(`m.y`));
 
     try {
-        await fs.access(path);
+        await fsAccess(fileDir);
     } catch (error) {
         if (error.code !== `ENOENT`) {
             throw error;
         };
 
         try {
-            await fs.mkdir(path, { recursive: true });
+            await fsMakeDir(fileDir, { recursive: true });
         } catch (error) {
             throw error;
         };
     };
 
-    fs.appendFile(`${path}/${utils.get.date()}.log`, stack);
+    fsAppendFile(joinPath(fileDir, `${getDate()}.log`), stack);
 
     stack = ``;
 };
 
-const log = function(text, in_console) {
-    stack += `[${utils.get.time()}] ${text}\n`;
+export const appendLog = function(text, in_console) {
+    stack += `[${getTime()}] ${text}\n`;
 
     if (in_console) {
         console.log(text);
@@ -41,9 +45,4 @@ const log = function(text, in_console) {
 };
 
 
-setInterval(write, config.logger?.interval * 1000 || 10000);
-
-
-module.exports = {
-    log
-};
+setInterval(writeLogToFile, logInterval);

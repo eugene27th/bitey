@@ -1,6 +1,8 @@
-// autocannon -c 100 -d 40 -p 10 localhost:3000
+/*
+    autocannon -c 100 -d 40 -p 10 localhost:30000
+*/
 
-const app = require(`bitey`).app;
+import { app } from "bitey";
 
 app.get(`/`, {},
     async function(res, req) {

@@ -1,30 +1,21 @@
 /*
-    usage: await bitey.redis.command(args);
+    required `redis` section in config.json
 */
 
-
-/*
-    get example
-    return value
-*/
-
-const get = await bitey.redis.get(`something:key`);
+import { redisClient } from "bitey/redis";
 
 
-/*
-    set example
-*/
+/* get example */
+const get = await redisClient.get(`something:key`);
 
-const set = await bitey.redis.set(`something:key`, JSON.stringify({ something: `data` }), {
+
+/* set example */
+const set = await redisClient.set(`something:key`, JSON.stringify({ something: `data` }), {
     EX: 300 // expire in seconds
 });
 
 
-/*
-    scan example
-    return array with found keys
-*/
-
-const scan = await bitey.redis.scanIterator({
+/* scan example */
+const scan = redisClient.scanIterator({
     MATCH: `something:*`
 });

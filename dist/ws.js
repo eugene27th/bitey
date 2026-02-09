@@ -1,10 +1,11 @@
-const config = require(`${process.cwd()}/config.json`);
+import { getConfig } from "./utils.js";
+import { appendLog } from "./logger.js";
+import { parseMessage } from "./parser.js";
 
-const parser = require(`./parser`);
-const logger = require(`./logger`);
+const config = getConfig();
 
 
-module.exports = function(app) {
+export const wsSetup = function(app) {
     app[`_ws`] = app.ws.bind(app);
 
     app.ws = {
@@ -13,7 +14,7 @@ module.exports = function(app) {
         messages: {}
     };
 
-    if (config.guard) {
+    if (config.guard?.ws) {
         setInterval(() => {
             app.ws.messages = {};
         }, config.guard.ws[1][1] * 1000);
@@ -53,7 +54,7 @@ module.exports = function(app) {
             open: function(ws) {
                 console.log(`ws debug: + ws connected`);
                 
-                if (config.guard) {
+                if (config.guard?.ws) {
                     if (app.ws.connections[ws.ip] === undefined) {
                         app.ws.connections[ws.ip] = 1;
                     } else {
@@ -76,23 +77,19 @@ module.exports = function(app) {
             close: function(ws, code, message) {
                 console.log('ws debug: - ws closed');
 
-                if (config.guard) {
-                    if (app.ws.connections[ws.ip] !== undefined) {
-                        if (app.ws.connections[ws.ip] > 1) {
-                            app.ws.connections[ws.ip]--;
-                        } else {
-                            delete app.ws.connections[ws.ip];
-                        };
+                if (config.guard?.ws && app.ws.connections[ws.ip] !== undefined) {
+                    if (app.ws.connections[ws.ip] > 1) {
+                        app.ws.connections[ws.ip]--;
+                    } else {
+                        delete app.ws.connections[ws.ip];
                     };
                 };
 
-                if (ws.config?.guard) {
-                    if (app.ws.routes[ws.url].connections[ws.ip] !== undefined) {
-                        if (app.ws.routes[ws.url].connections[ws.ip] > 1) {
-                            app.ws.routes[ws.url].connections[ws.ip]--;
-                        } else {
-                            delete app.ws.routes[ws.url].connections[ws.ip];
-                        };
+                if (ws.config?.guard && app.ws.routes[ws.url].connections[ws.ip] !== undefined) {
+                    if (app.ws.routes[ws.url].connections[ws.ip] > 1) {
+                        app.ws.routes[ws.url].connections[ws.ip]--;
+                    } else {
+                        delete app.ws.routes[ws.url].connections[ws.ip];
                     };
                 };
 
@@ -170,29 +167,27 @@ module.exports = function(app) {
 
                 req.ip = req.headers[`x-real-ip`] || `1.1.1.1`;
 
-                if (app.ws.connections[req.ip] > config.guard.ws[0]) {
+                if (config.guard?.ws && app.ws.connections[req.ip] > config.guard.ws[0]) {
                     return res.send({
                         error: `ER_RATE_LIMIT`,
                         message: `${config.guard.ws[0]} connections`
                     }, 429);
                 };
 
-                if (app.ws.routes[req.url].connections[req.ip] > req.config.guard[0]) {
+                if (req.config?.guard && app.ws.routes[req.url].connections[req.ip] > req.config.guard[0]) {
                     return res.send({
                         error: `ER_RATE_LIMIT`,
                         message: `${req.config.guard[0]} connections`
                     }, 429);
                 };
 
-                if (config.logger) {
-                    let logText = `ws:connection > ${req.ip} > ${req.url}`;
+                let logText = `ws:connection > ${req.ip} > ${req.url}`;
 
-                    if (req.config?.log?.headers) {
-                        logText += ` > headers: ${JSON.stringify(req.headers)}`;
-                    };
-
-                    logger.log(logText);
+                if (req.config?.log?.headers) {
+                    logText += ` > headers: ${JSON.stringify(req.headers)}`;
                 };
+
+                appendLog(logText);
 
                 if (app.ws.routes[url].handlers?.upgrade) {
                     let steps = app.ws.routes[url].handlers.upgrade.length - 1;
@@ -247,7 +242,7 @@ module.exports = function(app) {
             message: async function(ws, message, isBinary) {
                 ws.message = isBinary ? message : Buffer.from(message).toString();
 
-                if (config.guard) {
+                if (config.guard?.ws) {
                     if (app.ws.messages[ws.ip] === undefined) {
                         app.ws.messages[ws.ip] = 1;
                     } else {
@@ -278,7 +273,7 @@ module.exports = function(app) {
                 };
 
                 if (ws.schema) {
-                    ws.message = parser.message(ws);
+                    ws.message = parseMessage(ws);
 
                     if (ws.message.error) {
                         return ws.send(JSON.stringify({
@@ -288,15 +283,13 @@ module.exports = function(app) {
                     };
                 };
 
-                if (config.logger) {
-                    let logText = `ws:message > ${ws.ip} > ${ws.url}`;
+                let logText = `ws:message > ${ws.ip} > ${ws.url}`;
 
-                    if (ws.config?.log?.payload && ws.schema) {
-                        logText += ` > payload: ${JSON.stringify({ message: ws.message })}`;
-                    };
-
-                    logger.log(logText);
+                if (ws.config?.log?.payload && ws.schema) {
+                    logText += ` > payload: ${JSON.stringify({ message: ws.message })}`;
                 };
+
+                appendLog(logText);
 
                 let steps = app.ws.routes[url].handlers.message.length - 1;
 

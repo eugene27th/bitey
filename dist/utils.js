@@ -1,14 +1,23 @@
-const crypto = require(`crypto`);
-const logger = require(`./logger`);
+import { randomUUID } from "crypto";
+import { join as joinPath } from "path";
+import { readFileSync as fsReadFile } from "fs";
 
 
-const tryFetch = async function(url, options) {
+export const getConfig = function() {
+    try {
+        return JSON.parse(fsReadFile(joinPath(process.cwd(), `config.json`)));
+    } catch (error) {
+        console.error(`config file error`);
+        return {};
+    };
+};
+
+
+export const tryFetch = async function(url, options) {
     for (let a = 1; a <= 5; a++) {
         try {
             return await fetch(url, options);
         } catch (error) {
-            logger.log(`fetch > request error > url: ${url} > error: ${error.name} - ${error.message} > options: ${JSON.stringify(options)}${error.cause?.code ? ` > code: ${error.cause.code}` : ``}`);
-
             if (a >= 5) {
                 return {
                     ok: false,
@@ -20,7 +29,7 @@ const tryFetch = async function(url, options) {
 };
 
 
-const getDate = function(mode = `d.m.y`) {
+export const getDate = function(mode = `d.m.y`) {
     const date = new Date();
 
     if (mode === `ymd`) {
@@ -34,12 +43,12 @@ const getDate = function(mode = `d.m.y`) {
     return `${`${date.getUTCDate()}`.padStart(2, `0`)}.${`${date.getUTCMonth() + 1}`.padStart(2, `0`)}.${date.getUTCFullYear()}`;
 };
 
-const getTime = function() {
+export const getTime = function() {
     const date = new Date();
     return `${`${date.getUTCHours()}`.padStart(2, `0`)}:${`${date.getUTCMinutes()}`.padStart(2, `0`)}:${`${date.getUTCSeconds()}`.padStart(2, `0`)}Z`;
 };
 
-const getTimestamp = function(date) {
+export const getTimestamp = function(date) {
     if (date) {
         return Math.round((new Date(date).getTime()) / 1000);
     };
@@ -48,18 +57,14 @@ const getTimestamp = function(date) {
 };
 
 
-const createUUIDts = function() {
-    const uuid = crypto.randomUUID();
+export const randomUUIDTS = function() {
+    const uuid = randomUUID();
     const ts = `${getTimestamp()}`;
 
     return `${uuid.slice(0, 4)}${ts.slice(5)}${uuid.slice(4, 30)}${ts.slice(0, 5)}${uuid.slice(-6)}`;
 };
 
-const createUUID = function() {
-    return crypto.randomUUID();
-};
-
-const createString = function(length, includes = [`default`]) {
+export const randomString = function(length, includes = [`default`]) {
     const charset = {
         "default": `QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789`,
         "letters": `QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm`,
@@ -85,7 +90,7 @@ const createString = function(length, includes = [`default`]) {
 };
 
 
-const cookieParse = function(cookie) {
+export const parseCookie = function(cookie) {
     if (!cookie || cookie.length < 1) {
         return null;
     };
@@ -106,7 +111,7 @@ const cookieParse = function(cookie) {
     return result;
 };
 
-const cookieSerialize = function(name, value, options = {}) {
+export const serializeCookie = function(name, value, options = {}) {
     let attributes = [];
 
     if (options.age) {
@@ -134,23 +139,4 @@ const cookieSerialize = function(name, value, options = {}) {
     } else {
         return `${name}=${value}; ${attributes.join(`; `)}`;
     };
-};
-
-
-module.exports = {
-    fetch: tryFetch,
-    get: {
-        date: getDate,
-        time: getTime,
-        timestamp: getTimestamp
-    },
-    create: {
-        uuid: createUUID,
-        uuidts: createUUIDts,
-        string: createString
-    },
-    cookie: {
-        parse: cookieParse,
-        serialize: cookieSerialize
-    }
 };

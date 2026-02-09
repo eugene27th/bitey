@@ -1,88 +1,10 @@
-const uws = require(`uWebSockets.js`);
+const uws = await import("uWebSockets.js");
 
-const crypto = require(`crypto`);
-const validator = require(`./validator`);
-
-
-const params = function(req) {
-    let params = [];
-
-    for (let i = 0; i < req.schema.params.length; i++) {
-        const param = req.getParameter(i);
-
-        if (!param) {
-            return {
-                error: `parameter[${i}] is missing`
-            };
-        };
-
-        if (!validator.value(param, req.schema.params[i])) {
-            return {
-                error: `parameter[${i}] is invalid > ${validator.error()}`
-            };
-        };
-
-        params.push(param);
-    };
-
-    return params;
-};
-
-const query = function(req) {
-    let query = {};
-
-    const string = req.getQuery();
-
-    if (!string) {
-        if (req.schema.query.min) {
-            return {
-                error: `query string is missing`
-            };
-        };
-
-        if (req.schema.query.entries) {
-            for (const property of Object.values(req.schema.query.entries)) {
-                if (property.required) {
-                    return {
-                        error: `query string is missing`
-                    };
-                };
-            };
-        };
-
-        return query;
-    };
-
-    const pairs = string.split(`&`);
-
-    if (req.schema.query.max && pairs.length > req.schema.query.max) {
-        return {
-            error: `query string is invalid > 'length < ${req.schema.query.max}' required`
-        };
-    };
-
-    if (req.schema.query.min && pairs.length < req.schema.query.min) {
-        return {
-            error: `query string is invalid > '${req.schema.query.min} < length' required`
-        };
-    };
-
-    for (const pair of pairs) {
-        const [key, value] = pair.split(`=`);
-        query[key] = value;
-    };
-
-    if (req.schema.query.entries && !validator.json(query, req.schema.query)) {
-        return {
-            error: `query string is invalid > ${validator.error()}`
-        };
-    };
-
-    return query;
-};
+import { createHash } from "crypto";
+import { getValidationError, isValidValue, isValidObject } from "./validator.js";
 
 
-const json = function(req) {
+const parseJsonBody = function(req) {
     if (req.headers[`content-type`].search(`application/json`) < 0) {
         return {
             error: `'application/json' content type required`
@@ -113,16 +35,16 @@ const json = function(req) {
         };
     };
 
-    if (req.schema.body.entries && !validator.json(body, req.schema.body)) {
+    if (req.schema.body.entries && !isValidObject(body, req.schema.body)) {
         return {
-            error: `body raw is invalid > ${validator.error()}`
+            error: `body raw is invalid > ${getValidationError()}`
         };
     };
 
     return body;
 };
 
-const form = function(req) {
+const parseFormBody = function(req) {
     if (req.headers[`content-type`].search(`multipart/form-data`) < 0) {
         return {
             error: `'multipart/form-data' content type required`
@@ -187,35 +109,21 @@ const form = function(req) {
                 };
             };
 
-            if (req.schema.body.entries[part.name].mimetypes && !req.schema.body.entries[part.name].mimetypes.includes(part.type)) {
+            if (req.schema.body.entries[part.name].mime && !req.schema.body.entries[part.name].mime.includes(part.type)) {
                 return {
-                    error: `body raw is invalid > '${part.name}' is invalid > '${req.schema.body.entries[part.name].mimetypes.join(` / `)}' mimetype required`
+                    error: `body raw is invalid > '${part.name}' is invalid > '${req.schema.body.entries[part.name].mime.join(` / `)}' mimetype required`
                 };
-            };
-
-            const extensions = {
-                "image/png": `png`,
-                "image/jpeg": `jpg`,
-                "image/webp": `webp`,
-                "image/gif": `gif`,
-                "image/svg+xml": `svg`,
-                "application/zip": `zip`,
-                "application/zip-compressed": `zip`,
-                "application/x-zip-compressed": `zip`,
-                "video/mp4": `mp4`,
-                "audio/mpeg": `mp3`
             };
 
             let file = {
                 name: part.filename,
-                mimetype: part.type,
-                ext: extensions[part.type] || null,
+                mime: part.type,
                 size: part.data.byteLength,
                 buffer: Buffer.from(part.data)
             };
 
             if (req.schema.body.entries[part.name].hash) {
-                file.hash = crypto.createHash(`md5`).update(file.buffer).digest(`hex`);
+                file.hash = createHash(`md5`).update(file.buffer).digest(`hex`);
             };
 
             if (!body[part.name]) {
@@ -244,9 +152,9 @@ const form = function(req) {
                 };
             };
 
-            if (!validator.value(value, req.schema.body.entries[part.name])) {
+            if (!isValidValue(value, req.schema.body.entries[part.name])) {
                 return {
-                    error: `body raw is invalid > '${part.name}' is invalid > ${validator.error()}`
+                    error: `body raw is invalid > '${part.name}' is invalid > ${getValidationError()}`
                 };
             };
 
@@ -257,7 +165,85 @@ const form = function(req) {
     return body;
 };
 
-const body = function(req) {
+
+export const parseParams = function(req) {
+    let params = [];
+
+    for (let i = 0; i < req.schema.params.length; i++) {
+        const param = req.getParameter(i);
+
+        if (!param) {
+            return {
+                error: `parameter[${i}] is missing`
+            };
+        };
+
+        if (!isValidValue(param, req.schema.params[i])) {
+            return {
+                error: `parameter[${i}] is invalid > ${getValidationError()}`
+            };
+        };
+
+        params.push(param);
+    };
+
+    return params;
+};
+
+export const parseQuery = function(req) {
+    let query = {};
+
+    const string = req.getQuery();
+
+    if (!string) {
+        if (req.schema.query.min) {
+            return {
+                error: `query string is missing`
+            };
+        };
+
+        if (req.schema.query.entries) {
+            for (const property of Object.values(req.schema.query.entries)) {
+                if (property.required) {
+                    return {
+                        error: `query string is missing`
+                    };
+                };
+            };
+        };
+
+        return query;
+    };
+
+    const pairs = string.split(`&`);
+
+    if (req.schema.query.max && pairs.length > req.schema.query.max) {
+        return {
+            error: `query string is invalid > 'length < ${req.schema.query.max}' required`
+        };
+    };
+
+    if (req.schema.query.min && pairs.length < req.schema.query.min) {
+        return {
+            error: `query string is invalid > '${req.schema.query.min} < length' required`
+        };
+    };
+
+    for (const pair of pairs) {
+        const [key, value] = pair.split(`=`);
+        query[key] = value;
+    };
+
+    if (req.schema.query.entries && !isValidObject(query, req.schema.query)) {
+        return {
+            error: `query string is invalid > ${getValidationError()}`
+        };
+    };
+
+    return query;
+};
+
+export const parseBody = function(req) {
     if (!req.buffer) {
         if (req.schema.body.min) {
             return {
@@ -279,11 +265,11 @@ const body = function(req) {
     };
 
     if (req.schema.body.type === `application/json`) {
-        return json(req);
+        return parseJsonBody(req);
     };
 
     if (req.schema.body.type === `multipart/form-data`) {
-        return form(req);
+        return parseFormBody(req);
     };
 
     return {
@@ -291,8 +277,7 @@ const body = function(req) {
     };
 };
 
-
-const message = function(ws) {
+export const parseMessage = function(ws) {
     if (!ws.message) {
         if (ws.schema.min) {
             return {
@@ -335,19 +320,11 @@ const message = function(ws) {
         };
     };
 
-    if (ws.schema.entries && !validator.json(body, ws.schema)) {
+    if (ws.schema.entries && !isValidObject(body, ws.schema)) {
         return {
-            error: `message is invalid > ${validator.error()}`
+            error: `message is invalid > ${getValidationError()}`
         };
     };
 
     return body;
-};
-
-
-module.exports = {
-    params,
-    query,
-    body,
-    message
 };

@@ -1,25 +1,18 @@
-const uws = require(`uWebSockets.js`);
+const uws = await import(`uWebSockets.js`);
 
+import { wsSetup } from "./dist/ws.js";
+import { httpSetup } from "./dist/http.js";
+import { getConfig } from "./dist/utils.js";
 
-const app = uws.App();
+export const app = uws.App();
 
-require(`./dist/http`)(app);
-require(`./dist/ws`)(app);
+wsSetup(app);
+httpSetup(app);
 
 app.start = function() {
-    app.listen(require(`${process.cwd()}/config.json`).port, function(token) {
+    const config = getConfig();
+
+    app.listen(config.port || 30000, function(token) {
         token ? console.log(`webserver started`) : console.log(`webserver not started`);
     });
-};
-
-
-module.exports = {
-    app,
-    cache: require(`./dist/cache`),
-    error: require(`./dist/error`),
-    logger: require(`./dist/logger`),
-    mysql: require(`./dist/mysql`),
-    redis: require(`./dist/redis`),
-    utils: require(`./dist/utils`),
-    validator: require(`./dist/validator`)
 };

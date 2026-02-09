@@ -1,345 +1,74 @@
-# Bitey
-
-Bitey — лёгкий веб-фреймворк на основе `uWebSockets.js`, похожий по API на `express`/`fastify`, оптимизированный для высокой производительности и малого потребления памяти.
-
 ![bitey](https://github.com/user-attachments/assets/0c49172d-7cda-4193-896c-1535a0fddc74)
 
-## Краткое описание возможностей
+# Bitey
+Lightweight and high-performance web server powered by **uWebSockets.js**.
 
-- Быстрый HTTP-сервер поверх `uWebSockets.js`.
-- Встроенная маршрутизация: `app.get`, `app.post`, `app.patch`, `app.put`, `app.del`.
-- Глобальные и маршрутные лимиты запросов (rate limiting).
-- Валидация входных данных (params, query, body) через простую схему.
-- Логирование запросов, ошибок, нагрузки, заголовков, подключений, сообщений.
-- Поддержка WebSocket с подпиской/публикацией сообщений.
-- Поддержка Middleware для HTTP и WebSocket (upgrade/message).
-- Простая кэш-система в памяти (`bitey.cache`) и логирование (`bitey.logger`).
-- Адаптеры для MySQL (`bitey.mysql`) и Redis (`bitey.redis`) (опционально, в зависимости от `config.json`).
-- Утилиты: UUID/UUIDts, генерация строк, cookie-парсер/сериалайзер, retry fetch.
+**Bitey** is designed for lightning-fast creation and deployment of backends and microservices -  
+when you need maximum performance with minimal code and dependencies.
 
-## Быстрый старт
+Routing and middleware feel similar to Express/Fastify, but it runs **orders of magnitude faster** and uses far less memory.
 
-1. Установите bitey:
 
+## Quick start
 ```bash
 npm i github:eugene27th/bitey
 ```
 
-2. Создайте `config.json` в корне проекта (пример в `examples/config.json`):
+```js
+import { app } from "bitey";
 
-```javascript
+app.get(`/`, {},
+    async function(res, req) {
+        res.send({ hello: `world` });
+    }
+);
+
+app.start(); // default port: 30000
+```
+
+
+## Main features
+- HTTP and WebSocket routing
+- Input validation for params, query, body and messages
+- HTTP and WS rate limiting (global and per-route)
+- Middleware support for HTTP and WS handlers
+- Simple in-memory cache (`bitey/cache`)
+- Convenient MySQL wrappers (`bitey/mysql`)
+- Pre-connected Redis client (`bitey/redis`)
+- File-based logger with daily rotation
+- Utilities: `tryFetch`, `getDate`, `getTime`, `randomUUIDTS`, `parseCookie`, etc.
+
+
+## Most real-world patterns and features
+- `examples/index.js` - typical project entry point
+- `examples/config.json` - full configuration reference
+- `examples/controller.http.js` - HTTP routing
+- `examples/controller.ws.js` - WebSocket
+- `examples/cache.js` - in-memory cache usage
+- `examples/mysql.js` - MySQL usage examples
+- `examples/redis.js` - Redis usage examples
+- `examples/validator.js` - validation rules for all data types
+- `examples/benchmark.js` - minimal working server
+
+
+## Recommended minimal `config.json`
+```js
 {
-    "port": 30000,
-
-    "headers": [ // опционально
-        "cookie",
-        "session",
-        "user-agent"
-    ],
-
-    "cors": { // опционально
+    "port": 36423, // web server port
+    "cors": { // if backend is used for frontend
         "origin": [
-            "http://127.0.0.1:3000",
-            "https://domain.com"
+            "http://localhost:5173",
+            "https://your-domain.com"
         ],
         "credentials": true
     },
-
-    "guard": { // опционально
+    "guard": { // global rate limiting
         "http": [60, 10],
-        "ws": [10, [60, 10]]
+        "ws": [10, [30, 10]]
     },
-
-    "logger": {
+    "logger": { // writing logs
         "folder": ".logs",
         "interval": 10
-    },
-
-    "mysql": { // опционально
-        "host": "127.0.0.1",
-        "user": "username",
-        "database": "databasename",
-        "password": "password",
-        "ssl": false,
-        "metaAsArray": true,
-        "insertIdAsNumber": true,
-        "allowPublicKeyRetrieval": true,
-        "connectionLimit": 50,
-        "connectTimeout": 5000,
-        "acquireTimeout": 10000
-        // и прочие
-    },
-    
-    "redis": { // опционально
-        "host": "127.0.0.1",
-        "port": 6379,
-        "password": "password"
-        // и прочие
     }
 }
 ```
-
-3. Создайте файл сервера (пример `examples/index.js`):
-
-```javascript
-const bitey = require(`bitey`);
-const app = bitey.app;
-
-// Подключите контроллеры
-require(`./api/controllers/http/hello`)(app);
-require(`./api/controllers/ws/hello`)(app);
-
-app.start();
-```
-
-4. Пример HTTP-роута (см. `examples/controller.http.js`):
-
-```javascript
-app.post(`/helloworld`,
-    {
-        config: {
-            buffer: true, // оставить оригинальный буффер нагрузки в req.buffer
-            guard: [15, 10], // лимит на маршрут [n запросов, в n секунд]
-            log: {
-                headers: true, // логировать заголовки
-                payload: true // логировать нагрузку
-            }
-        },
-        middlewares: [middlewareOne, middlewareTwo], // массив middleware функций
-        schema: {
-            body: {
-                type: `application/json`, min: 2, max: 3
-            }
-        }
-    },
-    async function(res, req) {
-        // req.params, req.query, req.body доступны если заданы в схеме
-        console.log(req);
-
-        res.send({
-            hello: `world`
-        });
-    }
-);
-
-
-// Middleware примеры:
-const middlewareOne = async function(res, req, next) {
-    req.middlewareOne = true;
-    return next();
-};
-
-const middlewareTwo = async function(res, req, next) {
-    req.middlewareTwo = true;
-    return next();
-};
-```
-
-5. Пример WebSocket-роута (см. `examples/controller.ws.js`):
-
-```javascript
-app.message(`/pubsub`,
-    {
-        config: {
-            guard: [5, [15, 10]], // лимит на маршрут [n соединений, [n запросов, в n секунд]]
-            log: {
-                headers: true, // логировать заголовки
-                payload: true, // логировать нагрузку
-                messages: true, // логировать сообщения
-                connections: true // логировать подключения/отключения
-            }
-        },
-        middlewares: {
-            upgrade: [middlewareUpgrade], // выполнится в upgrade при создании подключения
-            message: [middlewareMessage] // выполнится перед финальным обработчиком сообщений
-        },
-        schema: {
-            min: 1, max: 2,
-            entries: {
-                action: {
-                    type: `enum`, enum: [`sub`, `unsub`]
-                },
-                data: {
-                    required: true,
-                    type: `string`, min: 1, max: 128
-                }
-            }
-        }
-    },
-    async function(ws) {
-        // при подключении ws содержит: ws.user, ws.url, ws.config, ws.schema
-        // ws.message содержит уже распарсенные и проверенные данные
-        console.log(ws);
-
-        if (ws.message.action === `sub`) {
-            ws.subscribe(`room:1`);
-        };
-
-        if (ws.message.action === `unsub`) {
-            ws.unsubscribe(`room:1`);
-        };
-
-        ws.send(JSON.stringify({
-            type: `send`,
-            action: ws.message.action || null
-        }));
-    }
-);
-
-
-// Публикация от сервера:
-setInterval(function() {
-    return app.publish(`room:1`, JSON.stringify({
-        type: `publish`,
-        message: `something update`
-    }));
-}, 10 * 1000);
-
-
-// Middleware примеры:
-const middlewareUpgrade = async function(res, req, next) {
-    req.middlewareUpgrade = true;
-    return next();
-};
-
-const middlewareMessage = async function(ws, next) {
-    ws.middlewareMessage = true;
-    return next();
-};
-```
-
-## API и поведение
-
-Подключение: `const bitey = require("bitey")` экспортирует объект:
- - `bitey.app` — приложение uWebSockets (добавлены обёртки `app.get/post/patch/del` и `app.message`)
- - `bitey.cache` — простой in-memory cache: `get`, `set`, `del`
- - `bitey.error` — класс ошибок `api(status, code, extra)` для выбрасывания контроллером
- - `bitey.logger` — `log(text)` (и автоматическое сохранение в папку из `config.logger`)
- - `bitey.mysql` — `exe`, `get`, `ins`, `upd`, `del` (если задан `mysql` в `config.json`)
- - `bitey.redis` — клиент `@redis/client` (если задан `redis` в `config.json`)
- - `bitey.utils` — `fetch` (с retry), `create.uuid`, `create.uuidts`, `cookie.parse/serialize`, `get.date/time/timestamp`
- - `bitey.validator` — `value`, `array`, `json`, `error()`
-
-### HTTP роуты
-Объявление: `app.get/post/patch/del(url, options, handler)`
-
-```javascript
-options = {
-    config: {
-        buffer: true, // boolean, сохранять raw buffer в req.buffer
-        guard: [n, s], // лимит на маршрут: n запросов за s секунд
-        log: {
-            headers: true, // boolean, логировать заголовки
-            payload: true // boolean, логировать данные
-        }
-    },
-    middlewares: [async function(res, req, next) { ... }, ...], // массив функций выполняемых перед handler
-    schema: { // валидация запроса (см. `examples/controller.http.js` и `examples/validator.js`)
-        params: { ... }, // валидация параметров пути
-        query: { ... }, // валидация query строки
-        body: { ... } // валидация тела запроса
-    }
-}
-
-handler = async function(res, req) {
-    // в req доступны: req.headers, req.user.ip, req.params, req.query, req.body, req.buffer (если buffer: true)
-
-    // отложенная установка заголовка. отправится при использовании res.send()
-    // это нужно для установки заголовока до установки статуса ответа
-    res.setDelayedHeader(`Content-Type`, `application/json`); 
-
-    res.cork(function() {
-        // установка статуса ответа
-        // должен быть установлен самым первым в ответе
-        res.writeStatus(`200`);
-
-        // установка заголовка
-        res.writeHeader(`Content-Type`, `application/json`);
-
-        res.write();
-        res.end();
-        res.endWithoutBody();
-        res.tryEnd();
-        res.close();
-        /* и прочие, см. документацию uWebSockets.js */
-    });
-
-    res.send(); // ответ 204 без тела (тело полностью отсутствует)
-    res.send(403); // ответ 403 без тела (тело полностью отсутствует)
-    res.send(`string`); // ответ 200 с строкой `string`
-    res.send(`string`, 400); // ответ 400 с строкой `string`
-    res.send({ json: true }); // ответ 200 с json `{"json":true}` и заголовком `Content-Type`: `application/json`
-    res.send({ json: true }, 400); // ответ 400 с json `{"json":true}` и заголовком `Content-Type`: `application/json`
-
-    res.redirect(`https://domain.com`); // ответ 302 с заголовком `Location`: `https://domain.com`
-}
-```
-
-### WebSocket
-Регистрация: `app.message(url, options, handler)`
-
-```javascript
-options = {
-    config: {
-        guard: [c, [n, s]], // лимит на маршрут: c соединений, n запросов за s секунд
-        log: {
-            headers: true, // boolean, логировать заголовки
-            payload: true, // boolean, логировать данные
-            messages: true, // boolean, логировать сообщения
-            connections: true // boolean, логировать подключения/отключения
-        }
-    },
-    middlewares: {
-        upgrade: [async function(res, req, next) { ... }, ...], // массив функций выполняемых при установке соединения
-        message: [async function(ws, next) { ... }, ...] // массив функций выполняемых перед handler
-    },
-    schema: { ... } // валидация сообщения (см. `examples/controller.ws.js` и `examples/validator.js`)
-}
-
-handler = async function(ws) {
-    // в ws доступны: ws.user, ws.url, ws.config, ws.schema, ws.message (распарсенная нагрузка)
-
-    ws.subscribe(topic); // подписка на тему
-    ws.unsubscribe(topic); // отписка от темы
-
-    ws.send(JSON.stringify({ type: `send`, message: `hello world` })); // отправка сообщения клиенту
-}
-```
-
-Публикация сообщений всем подписанным клиентам на тему:
-```javascript
-app.publish(topic, JSON.stringify({ type: `publish`, message: `update` }));
-```
-
-### Конфигурация
-Проект ожидает `config.json` в корне (см. `examples/config.json`).
-```javascript
-{
-    "port": 30000, // порт сервера
-    "headers": [ ... ], // дополнительные заголовки, которые будут собраны в req.headers (lowercase) (опционально)
-    "cors": { ... }, // параметры CORS (разрешённые origin и credentials) (опционально)
-    "guard": { ... }, // глобальные лимиты для http и ws (опционально)
-    "logger": { ... }, // путь и интервал записи логов
-    "mysql": { ... }, // блок для подключения к MySQL (опционально)
-    "redis": { ... } // блок для подключения к Redis (опционально)
-}
-```
-
-### Кэш
-- Экспорт: `bitey.cache` с методами `get(key)`, `set(key, value, ttl)`, `del(key)`.
-- См. `examples/cache.js` для подробностей.
-
-### Валидация
-- Используйте `schema` в роутинге, либо напрямую `bitey.validator.value/array/json`.
-- При ошибке `bitey.validator.error()` возвращает текст ошибки.
-- См. `examples/validator.js` для подробностей.
-
-### MySQL
-- Экспорт: `bitey.mysql` с методами `exe`, `get`, `ins`, `upd`, `del`.
-- Подключается автоматически если есть `mysql` в `config.json`.
-- См. `examples/mysql.js` для подробностей.
-
-### Redis
-- Экспорт: `bitey.redis` — это `@redis/client`.
-- Подключается автоматически если есть `redis` в `config.json`.
-- См. `examples/redis.js` для подробностей.

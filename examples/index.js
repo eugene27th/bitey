@@ -1,6 +1,13 @@
-const app = require(`bitey`).app;
+/*
+    preferably set up `port`, `cors` and `guard` sections in config.js
+*/
 
-require(`./api/controllers/http/hello`)(app);
-require(`./api/controllers/ws/hello`)(app);
+import { app } from "bitey";
+
+import httpController from "./api/controllers/http/hello.js";
+import wsController from "./api/controllers/ws/hello.js";
+
+httpController(app);
+wsController(app);
 
 app.start();

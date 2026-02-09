@@ -1,4 +1,4 @@
-const api = class {
+export const apiError = class {
     constructor(status, code, extra) {
         this.status = status;
         this.code = code;
@@ -7,9 +7,4 @@ const api = class {
             this.extra = extra;
         };
     }
-};
-
-
-module.exports = {
-    api
 };

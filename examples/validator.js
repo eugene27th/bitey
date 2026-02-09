@@ -1,8 +1,11 @@
+import { getValidationError, isValidValue, isValidArray, isValidObject } from "bitey/validator";
+
+
 /*
     arguments: (checked value, schema)
     return: boolean
     
-    error message in bitey.validator.error()
+    error message in getValidationError()
 
     types:
         boolean - boolean
@@ -40,38 +43,38 @@
             entries - json entries
 */
 
-if (!bitey.validator.json({
-    value_enum: `salwador`,
-    value_something: null,
-    value_pattern: `he-he`,
-    value_array: [
-        1, 2, 3
+if (!isValidObject({
+    key1: `salwador`,
+    key2: null,
+    key3: `he-he`,
+    key4: [
+        1, `2`, 3, `4`
     ],
-    value_object: {
+    key5: {
         hehe: true,
         haha: false
     }
 }, {
     min: 3,
     entries: {
-        value_enum: {
+        key1: {
             required: true,
             type: `enum`, enum: [`salwador`, `eugene`]
         },
-        value_something: {
+        key2: {
             required: true,
             type: `string`, min: 1, max: 128, null: true
         },
-        value_pattern: {
+        key3: {
             type: `pattern`, pattern: `email`, max: 128
         },
-        value_array: {
+        key4: {
             type: `array`, min: 1, max: 3,
             items: {
                 type: `int`, min: 1, max: 32, string: true
             }
         },
-        value_object: {
+        key5: {
             type: `object`, min: 1,
             entries: {
                 hehe: {
@@ -84,39 +87,39 @@ if (!bitey.validator.json({
         }
     }
 })) {
-    console.log(`json error -> `, bitey.validator.error());
+    console.log(`json error -> `, getValidationError());
 };
 
 
-if (!bitey.validator.array([
+if (!isValidArray([
     {
-        name: `salwador`,
-        aboba: true
+        key1: `salwador`,
+        key2: true
     },
     {
-        name: `eugene`,
-        aboba: false
+        key1: `eugene`,
+        key2: false
     }
 ], {
     min: 1, max: 2, duplicates: false,
     items: {
         type: `object`, min: 1,
         entries: {
-            name: {
+            key1: {
                 type: `string`, min: 1, max: 32
             },
-            aboba: {
+            key2: {
                 type: `boolean`
             }
         }
     }
 })) {
-    console.log(`array error -> `, bitey.validator.error());
+    console.log(`array error -> `, getValidationError());
 };
 
 
-if (!bitey.validator.value(`salwador-aboba`, {
+if (!isValidValue(`salwador-aboba`, {
     type: `string`, min: 1, max: 64
 })) {
-    console.log(`value error -> `, bitey.validator.error());
+    console.log(`value error -> `, getValidationError());
 };
