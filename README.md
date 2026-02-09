@@ -35,7 +35,7 @@ app.start(); // default port: 30000
 - Simple in-memory cache (`bitey/cache`)
 - Convenient MySQL wrappers (`bitey/mysql`)
 - Pre-connected Redis client (`bitey/redis`)
-- File-based logger with daily rotation
+- Logger with daily rotation (`bitey/logger`)
 - Utilities: `tryFetch`, `getDate`, `getTime`, `randomUUIDTS`, `parseCookie`, etc.
 
 
@@ -47,6 +47,7 @@ app.start(); // default port: 30000
 - `examples/cache.js` - in-memory cache usage
 - `examples/mysql.js` - MySQL usage examples
 - `examples/redis.js` - Redis usage examples
+- `examples/logger.js` - logger usage
 - `examples/validator.js` - validation rules for all data types
 - `examples/benchmark.js` - minimal working server
 

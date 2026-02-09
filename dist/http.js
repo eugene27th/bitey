@@ -247,17 +247,19 @@ export const httpSetup = function(app) {
                             delete req.buffer;
                         };
 
-                        let logText = `http:${req.method} > ${req.ip} > ${req.url}`;
+                        if (config.logger) {
+                            let logText = `http:${req.method} > ${req.ip} > ${req.url}`;
 
-                        if (req.config?.log?.headers) {
-                            logText += ` > headers: ${JSON.stringify(req.headers)}`;
+                            if (req.config?.log?.headers) {
+                                logText += ` > headers: ${JSON.stringify(req.headers)}`;
+                            };
+
+                            if (req.config?.log?.payload && req.schema) {
+                                logText += ` > payload: ${JSON.stringify({ params: req.params || null, query: req.query || null, body: req.body || null })}`;
+                            };
+
+                            appendLog(logText);
                         };
-
-                        if (req.config?.log?.payload && req.schema) {
-                            logText += ` > payload: ${JSON.stringify({ params: req.params || null, query: req.query || null, body: req.body || null })}`;
-                        };
-
-                        appendLog(logText);
 
                         let steps = app.http.methods[method][url].handlers.length - 1;
 

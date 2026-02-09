@@ -24,9 +24,9 @@ const config = {
         "ws": [10, [60, 10]] // [N connections , [N messages, in N seconds]]
     },
 
-    "logger": { // optional. logging settings
-        "folder": ".logs", // directory for files
-        "interval": 10 // the interval for writing logs to a file on disk
+    "logger": { // optional, if routing logging is needed
+        "folder": ".logs", // directory for files. default: ".logs"
+        "interval": 10 // the interval for writing logs to a file on disk. default: 10
     },
 
     "mysql": { // required for `bitey/mysql`. mysql (mariadb client) connection settings

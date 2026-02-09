@@ -181,13 +181,15 @@ export const wsSetup = function(app) {
                     }, 429);
                 };
 
-                let logText = `ws:connection > ${req.ip} > ${req.url}`;
+                if (config.logger) {
+                    let logText = `ws:connection > ${req.ip} > ${req.url}`;
 
-                if (req.config?.log?.headers) {
-                    logText += ` > headers: ${JSON.stringify(req.headers)}`;
+                    if (req.config?.log?.headers) {
+                        logText += ` > headers: ${JSON.stringify(req.headers)}`;
+                    };
+
+                    appendLog(logText);
                 };
-
-                appendLog(logText);
 
                 if (app.ws.routes[url].handlers?.upgrade) {
                     let steps = app.ws.routes[url].handlers.upgrade.length - 1;
@@ -283,13 +285,15 @@ export const wsSetup = function(app) {
                     };
                 };
 
-                let logText = `ws:message > ${ws.ip} > ${ws.url}`;
+                if (config.logger) {
+                    let logText = `ws:message > ${ws.ip} > ${ws.url}`;
 
-                if (ws.config?.log?.payload && ws.schema) {
-                    logText += ` > payload: ${JSON.stringify({ message: ws.message })}`;
+                    if (ws.config?.log?.payload && ws.schema) {
+                        logText += ` > payload: ${JSON.stringify({ message: ws.message })}`;
+                    };
+
+                    appendLog(logText);
                 };
-
-                appendLog(logText);
 
                 let steps = app.ws.routes[url].handlers.message.length - 1;
 

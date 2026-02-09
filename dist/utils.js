@@ -2,13 +2,19 @@ import { randomUUID } from "crypto";
 import { join as joinPath } from "path";
 import { readFileSync as fsReadFile } from "fs";
 
+let config = null;
+
 
 export const getConfig = function() {
+    if (config) {
+        return config;
+    };
+
     try {
-        return JSON.parse(fsReadFile(joinPath(process.cwd(), `config.json`)));
+        return config = JSON.parse(fsReadFile(joinPath(process.cwd(), `config.json`)));
     } catch (error) {
         console.error(`config file not found`);
-        return {};
+        return config = {};
     };
 };
 

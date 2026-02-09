@@ -1,7 +1,7 @@
 {
     "name": "bitey",
     "type": "module",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "author": "eugene27th",
     "exports": {
         ".": {
@@ -12,6 +12,9 @@
         },
         "./error": {
             "import": "./dist/error.js"
+        },
+        "./logger": {
+            "import": "./dist/logger.js"
         },
         "./mysql": {
             "import": "./dist/mysql.js"

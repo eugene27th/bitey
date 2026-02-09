@@ -36,10 +36,10 @@ const writeLogToFile = async function() {
     stack = ``;
 };
 
-export const appendLog = function(text, in_console) {
+export const appendLog = function(text, inConsole) {
     stack += `[${getTime()}] ${text}\n`;
 
-    if (in_console) {
+    if (inConsole) {
         console.log(text);
     };
 };
