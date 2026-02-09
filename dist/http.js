@@ -271,7 +271,7 @@ export const httpSetup = function(app) {
                                     try {
                                         return await app.http.methods[method][url].handlers[steps--](res, req, next);
                                     } catch (err) {
-                                        console.log(`http debug: err from http handler -> `, err);
+                                        // console.log(`http debug: err from http handler -> `, err);
 
                                         return res.send({
                                             error: err.code || `ER_UNEXPECTED`,

@@ -202,7 +202,7 @@ export const wsSetup = function(app) {
                                 try {
                                     return await app.ws.routes[url].handlers.upgrade[steps--](res, req, next);
                                 } catch (err) {
-                                    console.log(`ws debug: err from ws upgrade handler -> `, err);
+                                    // console.log(`ws debug: err from ws upgrade handler -> `, err);
 
                                     return res.send({
                                         error: err.code || `ER_UNEXPECTED`,
@@ -302,7 +302,7 @@ export const wsSetup = function(app) {
                         try {
                             return await app.ws.routes[url].handlers.message[steps--](ws, next);
                         } catch (err) {
-                            console.log(`ws debug: err from ws message handler -> `, err);
+                            // console.log(`ws debug: err from ws message handler -> `, err);
 
                             return ws.send(JSON.stringify({
                                 error: err.code || `ER_UNEXPECTED`,
