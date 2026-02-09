@@ -7,7 +7,7 @@ export const getConfig = function() {
     try {
         return JSON.parse(fsReadFile(joinPath(process.cwd(), `config.json`)));
     } catch (error) {
-        console.error(`config file error`);
+        console.error(`config file not found`);
         return {};
     };
 };
