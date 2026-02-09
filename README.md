@@ -56,20 +56,23 @@ app.start(); // default port: 30000
 ```js
 {
     "port": 36423, // web server port
+    
+    "guard": { // global rate limiting
+        "http": [60, 10],
+        "ws": [10, [30, 10]]
+    },
+
+    "logger": { // writing logs
+        "folder": ".logs",
+        "interval": 10
+    },
+
     "cors": { // if backend is used for frontend
         "origin": [
             "http://localhost:5173",
             "https://your-domain.com"
         ],
         "credentials": true
-    },
-    "guard": { // global rate limiting
-        "http": [60, 10],
-        "ws": [10, [30, 10]]
-    },
-    "logger": { // writing logs
-        "folder": ".logs",
-        "interval": 10
     }
 }
 ```
