@@ -33,21 +33,21 @@ export const getCache = function(key) {
     return structuredClone(entry.value);
 };
 
-export const deleteCache = function(keysOrPattern) {
-    if (typeof keysOrPattern === `string`) {
-        if (keysOrPattern.includes(`*`)) {
-            const regex = new RegExp(`^${keysOrPattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, `.*`)}$`);
+export const deleteCache = function(keys) {
+    if (!Array.isArray(keys)) {
+        keys = [keys];
+    };
 
-            for (const key of storage.keys()) {
-                if (regex.test(key)) {
-                    storage.delete(key);
+    for (const key of keys) {
+        if (key.includes(`*`)) {
+            const regex = new RegExp(`^${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, `.*`)}$`);
+
+            for (const storageKey of storage.keys()) {
+                if (regex.test(storageKey)) {
+                    storage.delete(storageKey);
                 };
             };
         } else {
-            storage.delete(keysOrPattern);
-        };
-    } else if (Array.isArray(keysOrPattern)) {
-        for (const key of keysOrPattern) {
             storage.delete(key);
         };
     };
