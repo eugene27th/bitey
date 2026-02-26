@@ -11,8 +11,7 @@ import { getValidationError, isValidValue, isValidArray, isValidObject } from "b
         boolean - boolean
         string - any string
         number - any number
-        int, int8, int16, int32 - int number
-        uint, uint8, uint16, uint32 - int number more than zero
+        integer - integer number
         float - float number
         enum - array with available values
         pattern - regex pattern
@@ -32,7 +31,7 @@ import { getValidationError, isValidValue, isValidArray, isValidObject } from "b
             pattern - own or key from `validator.js > patterns`
 
         value:
-            string (default: false) - if type = boolean, int, int8, int16, int32, uint, uint8, uint16, uint32, float. expects a value in string
+            string (default: false) - if type = boolean, number, integer, float. expects a value in string
 
         array:
             duplicates (default: false) - duplicate identical elements in an array. true - available, false - not available
@@ -71,7 +70,7 @@ if (!isValidObject({
         key4: {
             type: `array`, min: 1, max: 3,
             items: {
-                type: `int`, min: 1, max: 32, string: true
+                type: `integer`, min: 1, max: 32, string: true
             }
         },
         key5: {

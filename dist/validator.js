@@ -70,7 +70,7 @@ export const isValidValue = function(value, schema) {
                     return false;
                 };
             } else {
-                if (typeof value !== `string`) {
+                if (typeof value !== `string` || !/^-?\d+(\.\d+)?$/.test(value)) {
                     error = `'number in string' required`;
                     return false;
                 };
@@ -96,15 +96,15 @@ export const isValidValue = function(value, schema) {
             break;
         };
 
-        case `int`: {
+        case `integer`: {
             if (!schema.string) {
                 if (typeof value !== `number`) {
-                    error = `'number' required`;
+                    error = `'int number' required`;
                     return false;
                 };
             } else {
-                if (typeof value !== `string`) {
-                    error = `'number in string' required`;
+                if (typeof value !== `string` || !/^\d+$/.test(value)) {
+                    error = `'int number in string' required`;
                     return false;
                 };
 
@@ -112,7 +112,7 @@ export const isValidValue = function(value, schema) {
             };
 
             if (isNaN(value) || value % 1 !== 0) {
-                error = `'int' required`;
+                error = `'int number' required`;
                 return false;
             };
 
@@ -129,181 +129,15 @@ export const isValidValue = function(value, schema) {
             break;
         };
 
-        case `uint`: {
-            if (!schema.string) {
-                if (typeof value !== `number`) {
-                    error = `'number' required`;
-                    return false;
-                };
-            } else {
-                if (typeof value !== `string`) {
-                    error = `'number in string' required`;
-                    return false;
-                };
-
-                value = parseInt(value);
-            };
-
-            if (isNaN(value) || value % 1 !== 0 || value < 0) {
-                error = `'uint' required`;
-                return false;
-            };
-
-            if (schema.max !== undefined && value > schema.max) {
-                error = `'value < ${schema.max}' required`;
-                return false;
-            };
-
-            break;
-        };
-
-        case `int8`: {
-            if (!schema.string) {
-                if (typeof value !== `number`) {
-                    error = `'number' required`;
-                    return false;
-                };
-            } else {
-                if (typeof value !== `string`) {
-                    error = `'number in string' required`;
-                    return false;
-                };
-
-                value = parseInt(value);
-            };
-
-            if (isNaN(value) || value % 1 !== 0 || value < -128 || value > 128) {
-                error = `'int8' required`;
-                return false;
-            };
-
-            break;
-        };
-
-        case `uint8`: {
-            if (!schema.string) {
-                if (typeof value !== `number`) {
-                    error = `'number' required`;
-                    return false;
-                };
-            } else {
-                if (typeof value !== `string`) {
-                    error = `'number in string' required`;
-                    return false;
-                };
-
-                value = parseInt(value);
-            };
-
-            if (isNaN(value) || value % 1 !== 0 || value < 0 || value > 256) {
-                error = `'uint8' required`;
-                return false;
-            };
-
-            break;
-        };
-
-        case `int16`: {
-            if (!schema.string) {
-                if (typeof value !== `number`) {
-                    error = `'number' required`;
-                    return false;
-                };
-            } else {
-                if (typeof value !== `string`) {
-                    error = `'number in string' required`;
-                    return false;
-                };
-
-                value = parseInt(value);
-            };
-
-            if (isNaN(value) || value % 1 !== 0 || value < -32768 || value > 32768) {
-                error = `'int16' required`;
-                return false;
-            };
-
-            break;
-        };
-
-        case `uint16`: {
-            if (!schema.string) {
-                if (typeof value !== `number`) {
-                    error = `'number' required`;
-                    return false;
-                };
-            } else {
-                if (typeof value !== `string`) {
-                    error = `'number in string' required`;
-                    return false;
-                };
-
-                value = parseInt(value);
-            };
-
-            if (isNaN(value) || value % 1 !== 0 || value < 0 || value > 65536) {
-                error = `'uint16' required`;
-                return false;
-            };
-
-            break;
-        };
-
-        case `int32`: {
-            if (!schema.string) {
-                if (typeof value !== `number`) {
-                    error = `'number' required`;
-                    return false;
-                };
-            } else {
-                if (typeof value !== `string`) {
-                    error = `'number in string' required`;
-                    return false;
-                };
-
-                value = parseInt(value);
-            };
-
-            if (isNaN(value) || value % 1 !== 0 || value < -2147483648 || value > 2147483648) {
-                error = `'int32' required`;
-                return false;
-            };
-
-            break;
-        };
-
-        case `uint32`: {
-            if (!schema.string) {
-                if (typeof value !== `number`) {
-                    error = `'number' required`;
-                    return false;
-                };
-            } else {
-                if (typeof value !== `string`) {
-                    error = `'number in string' required`;
-                    return false;
-                };
-
-                value = parseInt(value);
-            };
-
-            if (isNaN(value) || value % 1 !== 0 || value < 0 || value > 4294967295) {
-                error = `'uint32' required`;
-                return false;
-            };
-
-            break;
-        };
-
         case `float`: {
             if (!schema.string) {
                 if (typeof value !== `number`) {
-                    error = `'number' required`;
+                    error = `'float number' required`;
                     return false;
                 };
             } else {
-                if (typeof value !== `string`) {
-                    error = `'number in string' required`;
+                if (typeof value !== `string` || !/^-?\d+\.\d+$/.test(value)) {
+                    error = `'float number in string' required`;
                     return false;
                 };
 
@@ -311,7 +145,7 @@ export const isValidValue = function(value, schema) {
             };
 
             if (isNaN(value)) {
-                error = `'float' required`;
+                error = `'float number' required`;
                 return false;
             };
 
