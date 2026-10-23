@@ -32,6 +32,6 @@
     "dependencies": {
         "mariadb": "^3.5.4",
         "@redis/client": "^6.3.0",
-        "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.71.0"
+        "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.70.0"
     }
 }
