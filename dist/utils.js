@@ -132,8 +132,12 @@ export const serializeCookie = function(name, value, options = {}) {
         attributes.push(`Domain=${options.domain}`);
     };
 
-    if (options.samesite) {
-        attributes.push(`SameSite=${options.samesite}`);
+    if (options.sameSite) {
+        attributes.push(`SameSite=${options.sameSite}`);
+    };
+
+    if (options.httpOnly) {
+        attributes.push(`HttpOnly`);
     };
 
     if (options.secure) {
